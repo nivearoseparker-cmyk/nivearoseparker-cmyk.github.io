@@ -43,3 +43,5 @@ table tbody tr:nth-child(even){ background:rgb(0 200 83 / .06); }
   .cards h3,.timeline__when{ color:var(--sdo-cyan)!important; }
   .link, a.link{ color:var(--sdo-cyan)!important; }
 }
+.band img{ width:100%!important; height:auto!important; aspect-ratio:auto!important; object-fit:contain!important; background:#fff; }
+.stat__fig{ display:inline-block; }
