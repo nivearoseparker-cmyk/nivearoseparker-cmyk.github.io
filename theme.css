@@ -63,3 +63,9 @@ table tbody tr:nth-child(even){ background:rgb(0 200 83 / .06); }
 }
 /* Sub-page nav scrolls away with the page so it never covers content */
 .nav:has(.back-nav){ position:relative!important; top:auto!important; margin-top:12px; }
+
+/* Skull Dev Ops section: transparent centered logo (2026-11-18) */
+.band--logo{ text-align:center; background:transparent!important; }
+.band--logo picture{ display:block; }
+.band--logo img{ width:min(460px,85%)!important; height:auto!important; margin:0 auto; display:block; background:transparent!important; border:0!important; box-shadow:none!important; border-radius:0!important; }
+.band--logo figcaption{ text-align:center; }
