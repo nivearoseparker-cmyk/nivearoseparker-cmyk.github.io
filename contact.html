@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Send a message · Rose Parker · Skull Dev Ops</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" />
+    <link rel="stylesheet" href="hark.css" />
+    <link rel="stylesheet" href="theme.css" />
+    <style>
+      .msg-form { display: grid; gap: 16px; max-width: 640px; }
+      .msg-form label { display: grid; gap: 6px; font-weight: var(--weight-medium, 500); }
+      .msg-form input, .msg-form textarea, .msg-form select {
+        font: inherit; color: inherit; background: var(--fill-tertiary, rgba(127,127,127,.12));
+        border: 1px solid var(--stroke, rgba(127,127,127,.35)); border-radius: 12px; padding: 12px 14px; width: 100%; box-sizing: border-box;
+      }
+      .msg-form textarea { min-height: 180px; resize: vertical; }
+      .msg-form input:focus, .msg-form textarea:focus, .msg-form select:focus { outline: 2px solid #22d3ee; outline-offset: 1px; }
+      .msg-form .hp { position: absolute; left: -9999px; }
+      .msg-form button.btn { justify-self: start; cursor: pointer; border: 0; font: inherit; }
+      .msg-status { min-height: 1.5em; }
+      .msg-status.ok { color: #22c55e; } .msg-status.err { color: #ef4444; }
+      .back-nav { display: flex; gap: 16px; align-items: center; padding: 12px 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="page" id="top">
+      <header class="nav glass"><nav class="seg back-nav" aria-label="Pages"><a href="index.html">← Home</a><a href="contact.html" aria-current="page">Send a message</a></nav></header>
+      <main class="main">
+        <section class="section" id="message">
+          <div class="head">
+            <p class="head__eyebrow">Skull Dev Ops</p>
+            <h2>Send me a message</h2>
+            <p class="head__sub">Hiring, a project, or just saying hi. It goes straight to my inbox and I'll get back to you.</p>
+          </div>
+          <form class="msg-form" id="msg-form" action="https://formsubmit.co/parker@skulldevops.com" method="POST">
+            <label>Your name<input type="text" name="name" required autocomplete="name" /></label>
+            <label>Your email<input type="email" name="email" required autocomplete="email" /></label>
+            <label>Subject
+              <select name="topic">
+                <option>Job opportunity</option>
+                <option>Project or collaboration</option>
+                <option>Skull Dev Ops</option>
+                <option>Something else</option>
+              </select>
+            </label>
+            <label>Message<textarea name="message" required></textarea></label>
+            <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <input type="hidden" name="_subject" value="New message from skulldevops.com" />
+            <input type="hidden" name="_template" value="table" />
+            <input type="hidden" name="_captcha" value="false" />
+            <button class="btn" type="submit">Send message</button>
+            <p class="msg-status" id="msg-status" role="status"></p>
+          </form>
+        </section>
+      </main>
+      <footer class="foot">
+        <p>Rose Parker · Skull Dev Ops · Los Angeles, CA</p>
+        <nav aria-label="Pages"><a href="index.html">Home</a></nav>
+      </footer>
+    </div>
+    <script>
+      (function () {
+        var f = document.getElementById("msg-form"), s = document.getElementById("msg-status");
+        f.addEventListener("submit", function (e) {
+          e.preventDefault();
+          if (f._honey.value) return;
+          var b = f.querySelector("button"); b.disabled = true; s.className = "msg-status"; s.textContent = "Sending…";
+          fetch("https://formsubmit.co/ajax/parker@skulldevops.com", {
+            method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify(Object.fromEntries(new FormData(f)))
+          }).then(function (r) { return r.json(); }).then(function (d) {
+            if (String(d.success) === "true") { f.reset(); s.className = "msg-status ok"; s.textContent = "Thanks! Your message was sent."; }
+            else throw new Error(d.message || "fail");
+          }).catch(function () { s.className = "msg-status err"; s.textContent = "Couldn't send right now. Please email parker@skulldevops.com."; })
+            .finally(function () { b.disabled = false; });
+        });
+      })();
+    </script>
+  </body>
+</html>
