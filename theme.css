@@ -61,3 +61,5 @@ table tbody tr:nth-child(even){ background:rgb(0 200 83 / .06); }
   .nav .back-nav{ flex-wrap:nowrap!important; overflow-x:auto; }
   .nav .seg a{ padding:6px 4px!important; font-size:10.5px!important; min-height:30px!important; }
 }
+/* Sub-page nav scrolls away with the page so it never covers content */
+.nav:has(.back-nav){ position:relative!important; top:auto!important; margin-top:12px; }
