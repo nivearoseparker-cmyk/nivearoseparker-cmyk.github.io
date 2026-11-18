@@ -69,3 +69,4 @@ table tbody tr:nth-child(even){ background:rgb(0 200 83 / .06); }
 .band--logo picture{ display:block; }
 .band--logo img{ width:min(460px,85%)!important; height:auto!important; margin:0 auto; display:block; background:transparent!important; border:0!important; box-shadow:none!important; border-radius:0!important; }
 .band--logo figcaption{ text-align:center; }
+.band--navy img{ background:#04162e!important; border-radius:var(--r-xl)!important; }
