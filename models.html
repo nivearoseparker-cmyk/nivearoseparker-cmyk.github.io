@@ -11,8 +11,9 @@
     <link rel="stylesheet" href="theme.css" />
     <style>
       .back-nav { display: flex; gap: 16px; align-items: center; padding: 12px 16px; flex-wrap: wrap; }
-      .viewer { position: relative; width: 100%; aspect-ratio: 4 / 3; max-height: 70vh; border-radius: 16px; overflow: hidden; background: radial-gradient(circle at 50% 35%, #1e293b, #05080c); touch-action: none; }
-      .viewer canvas { display: block; width: 100%; height: 100%; }
+      .viewer { position: relative; width: 100%; height: 420px; overscroll-behavior: contain; border-radius: 16px; overflow: hidden; background: radial-gradient(circle at 50% 35%, #1e293b, #05080c); touch-action: none; }
+      .viewer canvas { display: block; width: 100% !important; height: 100% !important; touch-action: none; }
+      @media (max-width: 600px) { .viewer { height: 340px; } }
       .viewer__msg { position: absolute; inset: 0; display: grid; place-items: center; color: #cbd5e1; pointer-events: none; }
       .viewer__name { position: absolute; left: 16px; bottom: 12px; color: #e2e8f0; font-weight: 600; pointer-events: none; }
       .m-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
@@ -67,7 +68,8 @@
       controls.enableDamping = true; controls.autoRotate = true; controls.autoRotateSpeed = 1.6;
       const loader = new STLLoader(); let mesh = null, home = null;
       const mat = new THREE.MeshStandardMaterial({ color: 0xb8c2cc, metalness: 0.35, roughness: 0.45 });
-      function size() { const w = box.clientWidth, h = box.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+      let lw = 0, lh = 0;
+      function size() { const w = box.clientWidth, h = box.clientHeight; if (w === lw && h === lh) return; lw = w; lh = h; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
       new ResizeObserver(size).observe(box); size();
       function frame() { if (!mesh) return; const b = new THREE.Box3().setFromObject(mesh), s = b.getSize(new THREE.Vector3()), r = Math.max(s.x, s.y, s.z);
         const d = r / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.5;
@@ -83,7 +85,8 @@
           mesh = new THREE.Mesh(g, mat); scene.add(mesh); frame(); msg.style.display = "none"; vname.textContent = m.name;
         }, undefined, () => { msg.textContent = "Couldn't load this model."; });
       }
-      document.getElementById("grid").addEventListener("click", e => { const t = e.target.closest(".m-tile"); if (t) show(+t.dataset.i); });
+      document.getElementById("grid").addEventListener("click", e => { const t = e.target.closest(".m-tile"); if (t) { show(+t.dataset.i); box.scrollIntoView({ behavior: "smooth", block: "center" }); } });
+      renderer.domElement.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
       const spin = document.getElementById("spin");
       spin.onclick = () => { controls.autoRotate = !controls.autoRotate; spin.textContent = controls.autoRotate ? "Pause spin" : "Spin"; };
       document.getElementById("resetv").onclick = () => { if (home) { camera.position.copy(home); controls.target.set(0, 0, 0); controls.update(); } };
