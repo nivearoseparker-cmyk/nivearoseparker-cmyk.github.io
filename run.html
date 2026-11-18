@@ -3,25 +3,66 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Run Python · Rose Parker · Skull Dev Ops</title>
+    <title>Python IDE · Rose Parker · Skull Dev Ops</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" />
     <link rel="stylesheet" href="hark.css" />
     <link rel="stylesheet" href="theme.css?v=3" />
+    <link rel="stylesheet" href="vendor/codemirror/codemirror.css" />
     <style>
       .back-nav { display: flex; gap: 16px; align-items: center; padding: 12px 16px; flex-wrap: wrap; }
-      .ide { display: grid; gap: 12px; }
-      .ide select, .ide textarea { font: inherit; color: inherit; background: var(--fill-tertiary, rgba(127,127,127,.12)); border: 1px solid var(--stroke, rgba(127,127,127,.35)); border-radius: 12px; padding: 12px 14px; width: 100%; box-sizing: border-box; }
-      .ide textarea { font-family: "Geist Mono", ui-monospace, monospace; font-size: 14px; min-height: 320px; resize: vertical; tab-size: 4; white-space: pre; overflow: auto; }
-      .ide textarea:focus, .ide select:focus { outline: 2px solid #22d3ee; outline-offset: 1px; }
-      .ide-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-      .ide-bar button.btn { cursor: pointer; border: 0; font: inherit; }
-      .ide-bar button.btn[disabled] { opacity: .5; cursor: wait; }
-      .console { font-family: "Geist Mono", ui-monospace, monospace; font-size: 14px; background: #0b0f14; color: #d1fae5; border-radius: 12px; padding: 14px; min-height: 160px; max-height: 420px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
-      .console .err { color: #fca5a5; } .console .sys { color: #67e8f9; }
-      .plots img { max-width: 100%; border-radius: 12px; background: #fff; margin-top: 12px; }
-      .status { min-height: 1.5em; }
+      .ide { --ink:#0b0f14; --panel:#0f1620; --line:#1f2a37; --mute:#8b9bb0; --txt:#e6edf3;
+        background: var(--ink); color: var(--txt); border-radius: 18px; overflow: hidden; border: 1px solid var(--line);
+        box-shadow: 0 10px 40px rgb(0 87 255 / .25); font-family: Geist, system-ui, sans-serif; }
+      .ide button, .ide select, .ide input { font: inherit; color: inherit; }
+      .ide-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+      .ide-top select { flex-basis: 260px; background: #16202c; border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; max-width: 100%; flex: 1 1 200px; min-width: 0; }
+      .tb { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: #16202c; border-radius: 10px; padding: 7px 12px; cursor: pointer; white-space: nowrap; font-size: 14px; }
+      .tb:hover { background: #1c2836; }
+      .tb[disabled] { opacity: .45; cursor: default; }
+      .tb.run { background: linear-gradient(90deg,#0057ff,#00d4ff 55%,#00c853); border: 0; color: #fff; font-weight: 600; }
+      .tb.stop { color: #fca5a5; }
+      .tb kbd { font: 11px "Geist Mono", monospace; opacity: .8; }
+      .spacer { flex: 1; }
+      @media (max-width: 599px) { .tb { padding: 6px 10px; font-size: 13px; } .tb kbd { display: none; } .ide-top .spacer { display: none; } .CodeMirror { font-size: 13px; } }
+      .tabs { display: flex; gap: 2px; overflow-x: auto; background: var(--panel); border-bottom: 1px solid var(--line); padding: 0 6px; scrollbar-width: thin; }
+      .tab { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; font: 13px "Geist Mono", monospace; color: var(--mute); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+      .tab.on { color: var(--txt); border-bottom-color: #00d4ff; background: var(--ink); }
+      .tab .x { opacity: .5; border: 0; background: none; cursor: pointer; padding: 0 2px; }
+      .tab .x:hover { opacity: 1; color: #fca5a5; }
+      .tab.main::before { content: "▶"; font-size: 9px; color: #39ff88; }
+      .tab.add { color: #67e8f9; }
+      .panes { display: grid; grid-template-columns: minmax(0,1fr); }
+      .panes > * { min-width: 0; }
+      @media (min-width: 1000px) { .panes { grid-template-columns: minmax(0,1.25fr) minmax(0,1fr); } .term-wrap { border-left: 1px solid var(--line); border-top: 0 !important; } }
+      .CodeMirror { height: 460px; font: 14px/1.55 "Geist Mono", ui-monospace, monospace; background: var(--ink); color: #e6edf3; }
+      @media (max-width: 999px) { .CodeMirror { height: 52vh; min-height: 300px; } }
+      .CodeMirror-gutters { background: var(--ink); border-right: 1px solid var(--line); }
+      .CodeMirror-linenumber { color: #4b5b70; }
+      .CodeMirror-cursor { border-left: 2px solid #00d4ff; }
+      .CodeMirror-activeline-background { background: #121c28; }
+      .CodeMirror-selected, .CodeMirror-focused .CodeMirror-selected { background: #1d3b5c !important; }
+      .CodeMirror-matchingbracket { color: #39ff88 !important; text-decoration: underline; }
+      .cm-s-sdo .cm-keyword { color: #c084fc; } .cm-s-sdo .cm-def { color: #67e8f9; } .cm-s-sdo .cm-variable-2 { color: #93c5fd; } .cm-s-sdo .cm-builtin { color: #39ff88; }
+      .cm-s-sdo .cm-string { color: #fcd34d; } .cm-s-sdo .cm-number { color: #fb923c; } .cm-s-sdo .cm-comment { color: #64748b; font-style: italic; }
+      .cm-s-sdo .cm-operator { color: #e2e8f0; } .cm-s-sdo .cm-property { color: #a5f3fc; } .cm-s-sdo .cm-meta { color: #f472b6; } .cm-s-sdo .cm-atom { color: #fb923c; }
+      .term-wrap { display: flex; flex-direction: column; border-top: 1px solid var(--line); min-height: 260px; }
+      .term-head { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: 12px; color: var(--mute); background: var(--panel); border-bottom: 1px solid var(--line); }
+      .dot { width: 8px; height: 8px; border-radius: 50%; background: #64748b; }
+      .dot.ready { background: #39ff88; } .dot.busy { background: #fcd34d; } .dot.err { background: #f87171; }
+      .term { flex: 1; margin: 0; padding: 12px 14px; font: 13.5px/1.5 "Geist Mono", ui-monospace, monospace; color: #d1fae5; white-space: pre-wrap; overflow-wrap: anywhere; overflow: auto; max-height: 460px; min-height: 200px; }
+      .term .err { color: #fca5a5; } .term .sys { color: #67e8f9; } .term .in { color: #fde68a; }
+      .inrow { display: none; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); background: #101a24; }
+      .inrow.on { display: flex; }
+      .inrow span { color: #39ff88; font: 13px "Geist Mono", monospace; }
+      .inrow input { flex: 1; min-width: 0; background: #0b1118; border: 1px solid #00d4ff; border-radius: 8px; padding: 8px 10px; font: 14px "Geist Mono", monospace; outline: none; }
+      .plots { padding: 0 12px; } .plots img { max-width: 100%; border-radius: 10px; background: #fff; margin: 10px 0; }
+      .ide-foot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; background: var(--panel); border-top: 1px solid var(--line); font-size: 13px; color: var(--mute); }
+      .ide-foot input { background: #16202c; border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; width: 170px; }
+      .tips { margin-top: 12px; }
+      .tips kbd { font: 12px "Geist Mono", monospace; border: 1px solid rgba(127,127,127,.4); border-radius: 5px; padding: 1px 5px; }
+      .sr { position: absolute; left: -9999px; }
     </style>
   </head>
   <body>
@@ -31,22 +72,40 @@
         <section class="section" id="run">
           <div class="head">
             <p class="head__eyebrow">Skull Dev Ops</p>
-            <h2>Run Python in your browser</h2>
-            <p class="head__sub">Pick one of my projects or write your own, then press Run. Nothing to install. When a program asks for input, a box pops up for your answer.</p>
+            <h2>Python IDE</h2>
+            <p class="head__sub">Open one of my projects or write your own. Real Python 3 runs right in your browser, with nothing to install. Your edits save on this device.</p>
           </div>
-          <div class="ide">
-            <label for="pick" class="fineprint">Project</label>
-            <select id="pick"><option value="Python-Programming/classes.py">classes.py · Story with classes: a short chat that asks you questions.</option><option value="Python-Programming/smoothie.py">smoothie.py · Smoothie Commands: a quirky terminal experience.</option><option value="AppRuntime---Python/github.py">github.py · AppRuntime: a runtime countdown sequence.</option><option value="Data-Analysis---Python/chart.py">chart.py · Data Analysis: a Matplotlib sales chart.</option><option value="scratch">Blank file · Write your own Python.</option></select>
-            <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Python code"></textarea>
-            <div class="ide-bar">
-              <button class="btn" id="runbtn" disabled>Loading Python…</button>
-              <button class="btn" id="resetbtn" type="button">Reset code</button>
-              <button class="btn" id="clearbtn" type="button">Clear output</button>
-              <span class="status fineprint" id="status"></span>
+          <div class="ide" id="ide">
+            <div class="ide-top">
+              <label class="sr" for="pick">Project</label>
+              <select id="pick"><option value="Python-Programming/classes.py">classes.py · Story with classes: a short chat that asks you questions.</option><option value="Python-Programming/smoothie.py">smoothie.py · Smoothie Commands: a quirky terminal experience.</option><option value="AppRuntime---Python/github.py">github.py · AppRuntime: a runtime countdown sequence.</option><option value="Data-Analysis---Python/chart.py">chart.py · Data Analysis: a Matplotlib sales chart.</option><option value="scratch">My code · Start from scratch.</option></select>
+              <button class="tb run" id="runbtn" disabled>▶ Run <kbd id="kbd">Ctrl+Enter</kbd></button>
+              <button class="tb stop" id="stopbtn" disabled>■ Stop</button>
+              <span class="spacer"></span>
+              <button class="tb" id="upbtn" title="Open a .py file from your computer">Upload</button>
+              <button class="tb" id="dlbtn" title="Download this file">Download</button>
+              <button class="tb" id="resetbtn" title="Undo all your edits to this project">Reset</button>
+              <input type="file" id="upfile" accept=".py,.txt,.csv,.json" multiple hidden />
             </div>
-            <pre class="console" id="out" aria-live="polite"></pre>
-            <div class="plots" id="plots"></div>
+            <div class="tabs" id="tabs" role="tablist"></div>
+            <div class="panes">
+              <div id="editor"></div>
+              <div class="term-wrap">
+                <div class="term-head"><span class="dot" id="dot"></span><span id="status">Starting Python…</span><span class="spacer"></span><button class="tb" id="clearbtn" style="padding:3px 9px;font-size:12px">Clear</button></div>
+                <pre class="term" id="out" aria-live="polite"></pre>
+                <div class="plots" id="plots"></div>
+                <form class="inrow" id="inrow"><span>›</span><input id="inbox" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Program input" placeholder="Type your answer and press Enter" /><button class="tb" type="button" id="incancel">Cancel</button></form>
+              </div>
+            </div>
+            <div class="ide-foot">
+              <span>Packages:</span>
+              <input id="pipname" placeholder="e.g. numpy, pandas" aria-label="Package to install" />
+              <button class="tb" id="pipbtn" disabled>Install</button>
+              <span class="spacer"></span>
+              <span>Python 3.12 · Pyodide</span>
+            </div>
           </div>
+          <p class="fineprint tips"><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> runs · <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>/</kbd> comments a line · the ▶ tab is the file that runs (double-click a tab to rename it or make it the main file). Files can import each other. NumPy, pandas and Matplotlib load on their own when you import them.</p>
         </section>
         <section class="section" id="desktop">
           <div class="head">
@@ -62,74 +121,145 @@
         <nav aria-label="Pages"><a href="index.html">Home</a> · <a href="downloads.html">Downloads</a> · <a href="contact.html">Send a message</a></nav>
       </footer>
     </div>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+    <script src="vendor/codemirror/codemirror.js"></script>
+    <script src="vendor/codemirror/mode/python/python.js"></script>
+    <script src="vendor/codemirror/addon/matchbrackets.js"></script>
+    <script src="vendor/codemirror/addon/closebrackets.js"></script>
+    <script src="vendor/codemirror/addon/active-line.js"></script>
+    <script src="vendor/codemirror/addon/comment.js"></script>
     <script>
-      const SAMPLES = {"Python-Programming/classes.py": {"name": "classes.py", "repo": "Python-Programming", "desc": "Story with classes: a short chat that asks you questions.", "code": "#Welsoome! This is my demoostration of classes in Python! A Short story introducing the user and \n#asking general questions only using functions, classes and variables.\n\n#This is the class of the Person in our story\nclass Person:\n    def __init__(self, name, age, dish):\n        self.name = name\n        self.age = age\n        self.dish = dish\n    #Self, Say hi to the user   \n    def say_hi(self):\n        print(\"Hello! My name is\", self.name)\n        \n     #Self, ask name of the user   \n    def ask_name(self):\n        user_input = input(\"What is your name? >>>\")\n        if user_input == user_input:\n           print(\"Cool name friend!\")\n    \n    #Self, ask favorite dish of the user  \n    def ask_fav(self):\n        user_input = input(\"What is your favorits dish? >>>\")\n        if user_input == user_input:\n            print(\"Yummy! Sounds delicious! Mine is\", p1.dish)       \n     \n    #Self, ask age of the user, but if it's a duplicate of my age then return a different messgae       \n    def ask_age(self):\n        user_input = input(\"How old are you? >>>\")\n        if user_input == \"22\":\n            print(\"Really? I'm\", self.age, \"as well!\")\n        else: \n            user_input == user_input\n            print(\"That's nice! I'm\", self.age)\n            \n    #Self, scold p2 from the conversation with the user\n    def scold(self):\n        user_input = input(\">>>\")\n        if user_input == user_input:\n            print(\"Don't speak to him friend...HEY! Go away Elon!\")\n            \n    #Self, p2 runs away crying, no matter what the user types\n    def cry(self):\n        user_input = input(\">>>\")\n        if user_input == user_input:\n            print(p2.name, \"*Runs away crying*\")\n            \n    #Self, laughs at p2 Running away     \n    def laugh(self):\n        user_input = input(\">>>\")\n        if user_input == user_input:\n            print(\"Ha Ha Ha! I hope that he cries at home!\")\n    \n    #Self, say bye to our new user friend    \n    def say_bye(self):\n        user_input = input(\"Welp, I'm leaving now! You headed home too? >>>\")\n        if user_input == user_input:\n            print(\"Bye friend!\")\n            \n#These are my characters, including me      \np1 = Person(\"Rose Parker\", 22, \"Chinese food\")\np2 = Person(\"Elon Musk\", 53, \"Ketchup\")\np3 = Person(\"Billy Grisham\", 23, \"Spaghetti\")\n\n#This is the story board using classes and functions that were earlier defined for the storyboard\np1.say_hi()\np1.ask_name()\np1.ask_age()\np1.ask_fav()\np2.say_hi()\np1.scold()\np2.cry()\np1.laugh()\np1.say_bye()\n\n        "}, "Python-Programming/smoothie.py": {"name": "smoothie.py", "repo": "Python-Programming", "desc": "Smoothie Commands: a quirky terminal experience.", "code": "# This is \"Smoothie Commands\" a weird terminal experience. First I add my names list so users can select their preferred person when they log onto the console\nname_list = [\"Rose, Elon\"]\nname = \"Rose\"\nage = 22\n# I add only 2 users, for example Myself, and Elon Musk, he's not as important as me right now\n# I start with a simple print of the name and age oonce the user logs onto the console and the second print line is a nice Greeting, the name oof the user and verification\nprint (name, age)\nprint (\"Welcome,\", name, \",in order to continue you must type a number below to verify yourself...\")\n# For the verification, I use a simnple equation soo that when a user types any number, that number is multiplied by 12, that number will be our verification code\nnumber = input(\"Type any number to get a generated verification code, you'll have to remember your code for later>>>>\")\ntry:\n    print(\"Your code is:\", 12 * int(number))\n    number = input(\"Enter your code>>>\")\n# I make sure that the user can only attempt to enter a number 2 times before being locked out of the console and they have to restart the process\n# After the number is entered, the number will multiply by 12\nexcept:\n    print(\"That is not a number...\")\n    number = input(\"*1 attempt left*, Enter a number>>>\")\n    print(\"Your code is:\", 12 * int(number))\n    number = input (\"Type your code here, do not share>>>\")\n    # Now if the user didn't enter a number, they will get a warning they'll have too try again later\n    print(\"That is not a number...Try again later\")\n\n# Now if the number was entered correctly, they will continue to the Smoothie console\n\nprint(\"Success!\")\n\n# This is where I add a greeting to the user logged onto the console, Rose or Elon\n\nprint(\"Wecome to ManiText!\")\nprint(\"Today, in this enviorment, we're going to be making a delicious smoothie for the user!\")\n# This displays the name list of all users, the users names are keywoords in oordr to continue\nprint (\"Users - \", name_list)\nprint (\"To exit, enter any key\")\n# I tell them to enter a user's name below, and the game will continue, after the user types the ingridients, the console will ask to blend it\nwhile True:\n    user_input = input(\"Start Typing a name to make a smoothie for that person>>>\")\n    if user_input == \"Elon\":\n        print(\"Let's Begin! Stary by picking a fruit for the smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add 1 more fruit to our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add milk our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"1 Cup - Dairy Milk\")\n        print(\"1 Cup - Oat Milk\")\n        input(\">>>\")\n        print(\"Okay! Now, let's blend our smoothie! It'll take a little while...ok?\")\n        # The user types \"ok\"\n        input(\">>>\")\n        print(\">>>Blend?<<<\")\n        # The user types \"yes\"\n        input(\">>>\")\n        #The console coounts down while the smoothie blends\n        print(\"3...\")\n        print(\"2...\")\n        print(\"1...\")\n        print(\"Done!\")\n        print (\"The smoothie is done! Thanks for playing and enjoy your smoothie!\")\n        #And once the smooothie is complete, the console shuts down\n        break\n        \n        # This is for the second User, same rules and same inputs\n    elif user_input == \"Rose\":\n        print(\"Let's Begin! Stary by picking a fruit for the smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add 1 more fruit to our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add milk to our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"1 Cup - Dairy Milk\")\n        print(\"1 Cup - Oat Milk\")\n        input(\">>>\")\n        print(\"Okay! Now, let's blend our smoothie! It'll take a little while...ok?\")\n        input(\">>>\")\n        print(\">>>Blend?<<<\")\n        input(\">>>\")\n        print(\"3...\")\n        print(\"2...\")\n        print(\"1...\")\n        print(\"Done!\")\n        print (\"The smoothie is done! Thanks for playing and enjoy your smoothie!\")\n        #And once the smooothie is complete, the console shuts down\n        break\n        \n        #If the user refuses to enters anything but keywords: \"Rose\" or, \"Elon\", the console will ask to shut down\n    else:\n        print (\"Are you sure you want to exit?\")\n        user_input == input(\">>>\")\n        # If the user types yes, Smoothie will shut down\n        if user_input == \"yes\":\n            break\n        \n        print (\"Goodbye\")\n        break\n"}, "AppRuntime---Python/github.py": {"name": "github.py", "repo": "AppRuntime---Python", "desc": "AppRuntime: a runtime countdown sequence.", "code": "#Rose Parker - GitHub Link\nimport time\n\nmy_website = \"http://github.com/skulldevops/\"\n\nslice = slice(7, -1)\n\nprint(\"...\")\n\nprint(my_website[slice])\n\nfor seconds in range(3, 0, -1):\n    print(seconds)\n    time.sleep(1)\nprint(\"Continue...\")"}, "Data-Analysis---Python/chart.py": {"name": "chart.py", "repo": "Data-Analysis---Python", "desc": "Data Analysis: a Matplotlib sales chart.", "code": "#Welcome! This is a simple chart usng MatPlotLib. - Rose Parker\n#_____Imports_____\nimport matplotlib.pyplot as plt\n\nplt.title(\"Product Sold\")\nx = [\"Jan\", \"Feb\", \"Mar\", \"Apr\", \"May\", \"Jun\", \"Jul\", \"Aug\", \"Sep\", \"Oct\", \"Nov\", \"Dec\"]\ny = [10,25,50,75,100,150,200, 250, 300, 350, 400, 450]\ncolors = [\"blue\", \"purple\"]\n\n#Plotting the chart\nplt.plot(x,y, color=\"blue\", marker=\"o\")\nplt.fill_between(x, y, color=\"blue\", alpha=0.2)\nplt.grid()\nplt.legend([\"Company Product Sold\"])\nplt.xticks(rotation=45)\nplt.tight_layout()\nplt.savefig(\"chart.png\")\nplt.xlabel(\"Months\")\nplt.ylabel(\"Products Sold\")\nplt.title(\"Products Sold\")\nplt.show()  # Display the chart\n#End of code\n"}, "scratch": {"name": "Blank file", "repo": "", "desc": "Write your own Python.", "code": "print(\"Hello from Skull Dev Ops!\")\nname = input(\"What is your name? \")\nprint(\"Nice to meet you,\", name)\n"}};
-      const pick = document.getElementById("pick"), code = document.getElementById("code"), out = document.getElementById("out");
-      const runbtn = document.getElementById("runbtn"), status = document.getElementById("status"), plots = document.getElementById("plots");
-      let recent = "";
-      function load() { code.value = SAMPLES[pick.value].code; }
-      pick.addEventListener("change", load); load();
-      document.getElementById("resetbtn").onclick = load;
-      document.getElementById("clearbtn").onclick = () => { out.textContent = ""; plots.innerHTML = ""; };
-      code.addEventListener("keydown", e => { if (e.key === "Tab") { e.preventDefault(); const s = code.selectionStart; code.setRangeText("    ", s, code.selectionEnd, "end"); } });
-      function write(t, cls) { recent = (recent + t + "\n").slice(-600); const sp = document.createElement("span"); if (cls) sp.className = cls; sp.textContent = t + "\n"; out.appendChild(sp); out.scrollTop = out.scrollHeight; }
-      window.hark_input = (q) => { const tail = recent.trim().split("\n").slice(-6).join("\n"); recent = ""; const a = window.prompt((tail ? tail + "\n\n" : "") + (q || "Input:")); if (a === null) return null; write((q || "") + a); return a; };
-      let py;
-      (async () => {
+    (() => {
+      const SAMPLES = {"Python-Programming/classes.py": {"name": "classes.py", "file": "classes.py", "repo": "Python-Programming", "desc": "Story with classes: a short chat that asks you questions.", "code": "#Welsoome! This is my demoostration of classes in Python! A Short story introducing the user and \n#asking general questions only using functions, classes and variables.\n\n#This is the class of the Person in our story\nclass Person:\n    def __init__(self, name, age, dish):\n        self.name = name\n        self.age = age\n        self.dish = dish\n    #Self, Say hi to the user   \n    def say_hi(self):\n        print(\"Hello! My name is\", self.name)\n        \n     #Self, ask name of the user   \n    def ask_name(self):\n        user_input = input(\"What is your name? >>>\")\n        if user_input == user_input:\n           print(\"Cool name friend!\")\n    \n    #Self, ask favorite dish of the user  \n    def ask_fav(self):\n        user_input = input(\"What is your favorits dish? >>>\")\n        if user_input == user_input:\n            print(\"Yummy! Sounds delicious! Mine is\", p1.dish)       \n     \n    #Self, ask age of the user, but if it's a duplicate of my age then return a different messgae       \n    def ask_age(self):\n        user_input = input(\"How old are you? >>>\")\n        if user_input == \"22\":\n            print(\"Really? I'm\", self.age, \"as well!\")\n        else: \n            user_input == user_input\n            print(\"That's nice! I'm\", self.age)\n            \n    #Self, scold p2 from the conversation with the user\n    def scold(self):\n        user_input = input(\">>>\")\n        if user_input == user_input:\n            print(\"Don't speak to him friend...HEY! Go away Elon!\")\n            \n    #Self, p2 runs away crying, no matter what the user types\n    def cry(self):\n        user_input = input(\">>>\")\n        if user_input == user_input:\n            print(p2.name, \"*Runs away crying*\")\n            \n    #Self, laughs at p2 Running away     \n    def laugh(self):\n        user_input = input(\">>>\")\n        if user_input == user_input:\n            print(\"Ha Ha Ha! I hope that he cries at home!\")\n    \n    #Self, say bye to our new user friend    \n    def say_bye(self):\n        user_input = input(\"Welp, I'm leaving now! You headed home too? >>>\")\n        if user_input == user_input:\n            print(\"Bye friend!\")\n            \n#These are my characters, including me      \np1 = Person(\"Rose Parker\", 22, \"Chinese food\")\np2 = Person(\"Elon Musk\", 53, \"Ketchup\")\np3 = Person(\"Billy Grisham\", 23, \"Spaghetti\")\n\n#This is the story board using classes and functions that were earlier defined for the storyboard\np1.say_hi()\np1.ask_name()\np1.ask_age()\np1.ask_fav()\np2.say_hi()\np1.scold()\np2.cry()\np1.laugh()\np1.say_bye()\n\n        "}, "Python-Programming/smoothie.py": {"name": "smoothie.py", "file": "smoothie.py", "repo": "Python-Programming", "desc": "Smoothie Commands: a quirky terminal experience.", "code": "# This is \"Smoothie Commands\" a weird terminal experience. First I add my names list so users can select their preferred person when they log onto the console\nname_list = [\"Rose, Elon\"]\nname = \"Rose\"\nage = 22\n# I add only 2 users, for example Myself, and Elon Musk, he's not as important as me right now\n# I start with a simple print of the name and age oonce the user logs onto the console and the second print line is a nice Greeting, the name oof the user and verification\nprint (name, age)\nprint (\"Welcome,\", name, \",in order to continue you must type a number below to verify yourself...\")\n# For the verification, I use a simnple equation soo that when a user types any number, that number is multiplied by 12, that number will be our verification code\nnumber = input(\"Type any number to get a generated verification code, you'll have to remember your code for later>>>>\")\ntry:\n    print(\"Your code is:\", 12 * int(number))\n    number = input(\"Enter your code>>>\")\n# I make sure that the user can only attempt to enter a number 2 times before being locked out of the console and they have to restart the process\n# After the number is entered, the number will multiply by 12\nexcept:\n    print(\"That is not a number...\")\n    number = input(\"*1 attempt left*, Enter a number>>>\")\n    print(\"Your code is:\", 12 * int(number))\n    number = input (\"Type your code here, do not share>>>\")\n    # Now if the user didn't enter a number, they will get a warning they'll have too try again later\n    print(\"That is not a number...Try again later\")\n\n# Now if the number was entered correctly, they will continue to the Smoothie console\n\nprint(\"Success!\")\n\n# This is where I add a greeting to the user logged onto the console, Rose or Elon\n\nprint(\"Wecome to ManiText!\")\nprint(\"Today, in this enviorment, we're going to be making a delicious smoothie for the user!\")\n# This displays the name list of all users, the users names are keywoords in oordr to continue\nprint (\"Users - \", name_list)\nprint (\"To exit, enter any key\")\n# I tell them to enter a user's name below, and the game will continue, after the user types the ingridients, the console will ask to blend it\nwhile True:\n    user_input = input(\"Start Typing a name to make a smoothie for that person>>>\")\n    if user_input == \"Elon\":\n        print(\"Let's Begin! Stary by picking a fruit for the smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add 1 more fruit to our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add milk our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"1 Cup - Dairy Milk\")\n        print(\"1 Cup - Oat Milk\")\n        input(\">>>\")\n        print(\"Okay! Now, let's blend our smoothie! It'll take a little while...ok?\")\n        # The user types \"ok\"\n        input(\">>>\")\n        print(\">>>Blend?<<<\")\n        # The user types \"yes\"\n        input(\">>>\")\n        #The console coounts down while the smoothie blends\n        print(\"3...\")\n        print(\"2...\")\n        print(\"1...\")\n        print(\"Done!\")\n        print (\"The smoothie is done! Thanks for playing and enjoy your smoothie!\")\n        #And once the smooothie is complete, the console shuts down\n        break\n        \n        # This is for the second User, same rules and same inputs\n    elif user_input == \"Rose\":\n        print(\"Let's Begin! Stary by picking a fruit for the smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add 1 more fruit to our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add milk to our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"1 Cup - Dairy Milk\")\n        print(\"1 Cup - Oat Milk\")\n        input(\">>>\")\n        print(\"Okay! Now, let's blend our smoothie! It'll take a little while...ok?\")\n        input(\">>>\")\n        print(\">>>Blend?<<<\")\n        input(\">>>\")\n        print(\"3...\")\n        print(\"2...\")\n        print(\"1...\")\n        print(\"Done!\")\n        print (\"The smoothie is done! Thanks for playing and enjoy your smoothie!\")\n        #And once the smooothie is complete, the console shuts down\n        break\n        \n        #If the user refuses to enters anything but keywords: \"Rose\" or, \"Elon\", the console will ask to shut down\n    else:\n        print (\"Are you sure you want to exit?\")\n        user_input == input(\">>>\")\n        # If the user types yes, Smoothie will shut down\n        if user_input == \"yes\":\n            break\n        \n        print (\"Goodbye\")\n        break\n"}, "AppRuntime---Python/github.py": {"name": "github.py", "file": "github.py", "repo": "AppRuntime---Python", "desc": "AppRuntime: a runtime countdown sequence.", "code": "#Rose Parker - GitHub Link\nimport time\n\nmy_website = \"http://github.com/skulldevops/\"\n\nslice = slice(7, -1)\n\nprint(\"...\")\n\nprint(my_website[slice])\n\nfor seconds in range(3, 0, -1):\n    print(seconds)\n    time.sleep(1)\nprint(\"Continue...\")"}, "Data-Analysis---Python/chart.py": {"name": "chart.py", "file": "chart.py", "repo": "Data-Analysis---Python", "desc": "Data Analysis: a Matplotlib sales chart.", "code": "#Welcome! This is a simple chart usng MatPlotLib. - Rose Parker\n#_____Imports_____\nimport matplotlib.pyplot as plt\n\nplt.title(\"Product Sold\")\nx = [\"Jan\", \"Feb\", \"Mar\", \"Apr\", \"May\", \"Jun\", \"Jul\", \"Aug\", \"Sep\", \"Oct\", \"Nov\", \"Dec\"]\ny = [10,25,50,75,100,150,200, 250, 300, 350, 400, 450]\ncolors = [\"blue\", \"purple\"]\n\n#Plotting the chart\nplt.plot(x,y, color=\"blue\", marker=\"o\")\nplt.fill_between(x, y, color=\"blue\", alpha=0.2)\nplt.grid()\nplt.legend([\"Company Product Sold\"])\nplt.xticks(rotation=45)\nplt.tight_layout()\nplt.savefig(\"chart.png\")\nplt.xlabel(\"Months\")\nplt.ylabel(\"Products Sold\")\nplt.title(\"Products Sold\")\nplt.show()  # Display the chart\n#End of code\n"}, "scratch": {"name": "My code", "file": "main.py", "repo": "", "desc": "Start from scratch.", "code": "print(\"Hello from Skull Dev Ops!\")\nname = input(\"What is your name? \")\nprint(\"Nice to meet you,\", name)\n"}};
+      const KEY = "sdo-ide-v1";
+      const $ = id => document.getElementById(id);
+      const pick = $("pick"), out = $("out"), plots = $("plots"), tabsEl = $("tabs");
+      const runbtn = $("runbtn"), stopbtn = $("stopbtn"), pipbtn = $("pipbtn"), statusEl = $("status"), dot = $("dot");
+      const inrow = $("inrow"), inbox = $("inbox");
+      if (/Mac|iPhone|iPad/.test(navigator.platform)) $("kbd").textContent = "⌘↵";
+
+      // ---------- project + file state ----------
+      let store; try { store = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { store = {}; }
+      store.proj = store.proj || {};
+      const fresh = k => ({ files: [{ name: SAMPLES[k].file, code: SAMPLES[k].code }], active: 0, main: 0 });
+      let cur = SAMPLES[store.current] ? store.current : pick.value;
+      pick.value = cur;
+      const P = () => (store.proj[cur] = store.proj[cur] || fresh(cur));
+      const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+
+      const cm = CodeMirror($("editor"), {
+        mode: { name: "python", version: 3 }, theme: "sdo", lineNumbers: true, indentUnit: 4, tabSize: 4, indentWithTabs: false,
+        matchBrackets: true, autoCloseBrackets: true, styleActiveLine: true, lineWrapping: false, viewportMargin: 40,
+        extraKeys: {
+          "Tab": c => c.somethingSelected() ? c.indentSelection("add") : c.replaceSelection("    ", "end"),
+          "Shift-Tab": c => c.indentSelection("subtract"),
+          "Ctrl-Enter": () => run(), "Cmd-Enter": () => run(),
+          "Ctrl-/": "toggleComment", "Cmd-/": "toggleComment",
+          "Ctrl-S": () => { save(); setStatus("Saved on this device.", "ready"); }, "Cmd-S": () => { save(); setStatus("Saved on this device.", "ready"); }
+        }
+      });
+      let swapping = false;
+      cm.on("change", () => { if (swapping) return; P().files[P().active].code = cm.getValue(); save(); });
+
+      function showFile(i) {
+        const p = P(); p.active = i; swapping = true; cm.setValue(p.files[i].code); cm.clearHistory(); swapping = false; save(); drawTabs();
+      }
+      function drawTabs() {
+        const p = P(); tabsEl.innerHTML = "";
+        p.files.forEach((f, i) => {
+          const t = document.createElement("div");
+          t.className = "tab" + (i === p.active ? " on" : "") + (i === p.main ? " main" : ""); t.setAttribute("role", "tab");
+          t.title = i === p.main ? "Main file (this one runs)" : "Double-click to rename or make main";
+          const n = document.createElement("span"); n.textContent = f.name; t.appendChild(n);
+          if (p.files.length > 1) { const x = document.createElement("button"); x.className = "x"; x.textContent = "×"; x.title = "Delete file";
+            x.onclick = ev => { ev.stopPropagation(); if (!confirm("Delete " + f.name + "?")) return; p.files.splice(i, 1);
+              if (p.main >= p.files.length || p.main === i) p.main = 0; else if (p.main > i) p.main--; showFile(Math.min(p.active, p.files.length - 1)); };
+            t.appendChild(x); }
+          t.onclick = () => { if (i !== p.active) showFile(i); };
+          t.ondblclick = () => {
+            const nn = prompt("File name (type the same name to keep it). Add ! at the end to make it the main file.", f.name);
+            if (!nn) return; let name = nn.trim(), mk = name.endsWith("!"); if (mk) name = name.slice(0, -1).trim();
+            if (name && name !== f.name) { if (!/\.\w+$/.test(name)) name += ".py"; if (p.files.some(o => o.name === name)) return alert("That name is taken."); f.name = name; }
+            if (mk) p.main = i; save(); drawTabs();
+          };
+          tabsEl.appendChild(t);
+        });
+        const add = document.createElement("div"); add.className = "tab add"; add.textContent = "+ New file";
+        add.onclick = () => { let name = prompt("New file name", "helpers.py"); if (!name) return; name = name.trim(); if (!/\.\w+$/.test(name)) name += ".py";
+          if (P().files.some(o => o.name === name)) return alert("That name is taken."); P().files.push({ name, code: "" }); showFile(P().files.length - 1); cm.focus(); };
+        tabsEl.appendChild(add);
+      }
+      function openProject(k) { cur = k; store.current = k; save(); showFile(P().active || 0); out.textContent = ""; plots.innerHTML = ""; }
+      pick.onchange = () => openProject(pick.value);
+      $("resetbtn").onclick = () => { if (!confirm("Undo all your edits to this project?")) return; store.proj[cur] = fresh(cur); save(); showFile(0); };
+      $("dlbtn").onclick = () => { const f = P().files[P().active]; const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([f.code], { type: "text/x-python" })); a.download = f.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
+      $("upbtn").onclick = () => $("upfile").click();
+      $("upfile").onchange = async e => { for (const file of e.target.files) { const code = await file.text(); const p = P(); const at = p.files.findIndex(f => f.name === file.name);
+          if (at >= 0) p.files[at].code = code; else p.files.push({ name: file.name, code }); } e.target.value = ""; showFile(P().files.length - 1); };
+      $("clearbtn").onclick = () => { out.textContent = ""; plots.innerHTML = ""; };
+
+      // ---------- terminal ----------
+      function write(t, cls) { const atEnd = out.scrollHeight - out.scrollTop - out.clientHeight < 40;
+        const last = out.lastChild; if (last && last.className === (cls || "") && last.tagName === "SPAN") last.textContent += t;
+        else { const s = document.createElement("span"); s.className = cls || ""; s.textContent = t; out.appendChild(s); }
+        if (atEnd) out.scrollTop = out.scrollHeight; }
+      function setStatus(t, state) { statusEl.textContent = t; dot.className = "dot " + (state || ""); }
+
+      // ---------- helper service worker (keyboard input + sleep) ----------
+      let canInput = false, waitId = null;
+      async function setupSW() {
+        if (!("serviceWorker" in navigator)) return false;
         try {
-          py = await loadPyodide({ stdout: t => write(t), stderr: t => write(t, "err") });
-          py.runPython(`
-import builtins, time, js
-class StopProgram(Exception): pass
-def _input(prompt=""):
-    import sys; sys.stdout.flush()
-    r = js.window.hark_input(str(prompt))
-    if r is None: raise StopProgram("Stopped: input cancelled.")
-    return str(r)
-builtins.input = _input
-time.sleep = lambda s: None
-`);
-          runbtn.disabled = false; runbtn.textContent = "Run ▶"; status.textContent = "Python is ready.";
-        } catch (e) { runbtn.textContent = "Unavailable"; status.textContent = "Python couldn't load. Check your connection and refresh."; }
-      })();
-      runbtn.onclick = async () => {
-        runbtn.disabled = true; runbtn.textContent = "Running…"; plots.innerHTML = ""; recent = "";
-        write("» Running " + SAMPLES[pick.value].name, "sys");
-        try {
-          const src = code.value;
-          if (/^\s*(import|from)\s+(tkinter|pygame|moderngl)/m.test(src)) { write("This program uses a desktop window library, so it can't run in the browser. Download it from the Desktop apps list.", "err"); return; }
-          status.textContent = "Loading packages…";
-          await py.loadPackagesFromImports(src);
-          if (/matplotlib/.test(src)) py.runPython(`import matplotlib\nmatplotlib.use("Agg")\nimport matplotlib.pyplot as plt\nplt.close("all")\nplt.show = lambda *a, **k: None`);
-          status.textContent = "Running…";
-          await new Promise(r => setTimeout(r, 30));
-          py.globals.set("__src", src);
-          py.runPython(`
-import traceback
-try:
-    exec(compile(__src, "<project>", "exec"), {"__name__": "__main__"})
-except StopProgram as e:
-    print(e)
-except SystemExit:
-    pass
-except Exception:
-    import sys; tb = traceback.format_exc().splitlines(); print("\\n".join([tb[0]] + tb[3:]), file=sys.stderr)
-`);
-          if (/matplotlib/.test(src)) {
-            const imgs = py.runPython(`
-import io, base64, matplotlib.pyplot as plt
-_o=[]
-for n in plt.get_fignums():
-    b=io.BytesIO(); plt.figure(n).savefig(b, format="png", dpi=110, bbox_inches="tight"); _o.append(base64.b64encode(b.getvalue()).decode())
-plt.close("all")
-_o`).toJs();
-            imgs.forEach(s => { const i = new Image(); i.alt = "Chart output"; i.src = "data:image/png;base64," + s; plots.appendChild(i); });
-          }
-          write("» Done", "sys");
-        } catch (e) { write(String(e), "err"); }
-        finally { runbtn.disabled = false; runbtn.textContent = "Run ▶"; status.textContent = ""; }
-      };
+          await navigator.serviceWorker.register("ide-sw.js", { scope: "./" });
+          await navigator.serviceWorker.ready;
+          if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener("controllerchange", r, { once: true }); setTimeout(r, 3000); });
+          return !!navigator.serviceWorker.controller;
+        } catch (e) { return false; }
+      }
+      const answer = v => { if (waitId && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({ type: "answer", id: waitId, value: v }); waitId = null; inrow.classList.remove("on"); };
+      if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", e => {
+        if (e.data && e.data.type === "input" && running) { waitId = e.data.id; inrow.classList.add("on"); inbox.value = ""; setStatus("Waiting for your input…", "busy");
+          inbox.focus({ preventScroll: true }); inrow.scrollIntoView({ block: "nearest" }); }
+      });
+      inrow.onsubmit = e => { e.preventDefault(); const v = inbox.value; write(v + "\n", "in"); answer(v); setStatus("Running…", "busy"); };
+      $("incancel").onclick = () => answer(null);
+
+      // ---------- python worker ----------
+      let worker, ready = false, running = false;
+      function startWorker() {
+        ready = false; runbtn.disabled = true; pipbtn.disabled = true; setStatus("Starting Python…", "busy");
+        worker = new Worker("ide-worker.js");
+        worker.postMessage({ type: "config", canInput });
+        worker.onmessage = e => { const d = e.data;
+          if (d.type === "ready") { ready = true; runbtn.disabled = false; pipbtn.disabled = false; setStatus(canInput ? "Ready" : "Ready (keyboard input unavailable in this browser)", "ready"); }
+          else if (d.type === "out") write(d.text);
+          else if (d.type === "err") write(d.text, "err");
+          else if (d.type === "status") setStatus(d.text, "busy");
+          else if (d.type === "plot") { const i = new Image(); i.alt = "Chart output"; i.src = "data:image/png;base64," + d.data; plots.appendChild(i); }
+          else if (d.type === "pip-done") { pipbtn.disabled = false; write(d.ok ? "Installed " + d.name + "\n" : "Couldn't install " + d.name + ": " + d.text + "\n", d.ok ? "sys" : "err"); setStatus("Ready", "ready"); }
+          else if (d.type === "done") { running = false; answer(null); runbtn.disabled = false; stopbtn.disabled = true; write("\n» Finished in " + (d.ms / 1000).toFixed(2) + " s\n", "sys"); setStatus("Ready", "ready"); }
+          else if (d.type === "fatal") setStatus("Python couldn't load. Check your connection and refresh.", "err");
+        };
+        worker.onerror = () => setStatus("Python couldn't load. Check your connection and refresh.", "err");
+      }
+      function run() {
+        if (!ready || running) return;
+        const p = P(), files = p.files.map(f => ({ name: f.name, code: f.code })), main = files[p.main].name;
+        const src = files.map(f => f.code).join("\n");
+        if (/^\s*(import|from)\s+(tkinter|pygame|moderngl|turtle)\b/m.test(src)) { write("This program opens a desktop window (tkinter/pygame), so it can't run in the browser. Download it from the Desktop apps list.\n", "err"); return; }
+        out.textContent = ""; plots.innerHTML = "";
+        running = true; runbtn.disabled = true; stopbtn.disabled = false;
+        write("» python " + main + "\n", "sys");
+        worker.postMessage({ type: "run", files, main });
+      }
+      runbtn.onclick = run;
+      stopbtn.onclick = () => { if (!running) return; worker.terminate(); answer(null); running = false; stopbtn.disabled = true; write("\n» Stopped\n", "err"); startWorker(); };
+      pipbtn.onclick = () => { const n = $("pipname").value.trim(); if (!n || !ready) return; pipbtn.disabled = true; setStatus("Installing " + n + "…", "busy"); write("» pip install " + n + "\n", "sys"); worker.postMessage({ type: "pip", name: n }); };
+      $("pipname").onkeydown = e => { if (e.key === "Enter") pipbtn.click(); };
+
+      openProject(cur);
+      setupSW().then(ok => { canInput = ok; startWorker(); });
+    })();
     </script>
   </body>
 </html>
