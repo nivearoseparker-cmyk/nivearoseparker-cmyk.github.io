@@ -51,6 +51,7 @@
             <input type="hidden" name="_subject" value="New message from skulldevops.com" />
             <input type="hidden" name="_template" value="table" />
             <input type="hidden" name="_captcha" value="false" />
+            <input type="hidden" name="_next" value="https://skulldevops.com/contact.html?sent=1" />
             <button class="btn" type="submit">Send message</button>
             <p class="msg-status" id="msg-status" role="status"></p>
           </form>
@@ -63,20 +64,9 @@
     </div>
     <script>
       (function () {
-        var f = document.getElementById("msg-form"), s = document.getElementById("msg-status");
-        f.addEventListener("submit", function (e) {
-          e.preventDefault();
-          if (f._honey.value) return;
-          var b = f.querySelector("button"); b.disabled = true; s.className = "msg-status"; s.textContent = "Sending…";
-          fetch("https://formsubmit.co/ajax/parker@skulldevops.com", {
-            method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
-            body: JSON.stringify(Object.fromEntries(new FormData(f)))
-          }).then(function (r) { return r.json(); }).then(function (d) {
-            if (String(d.success) === "true") { f.reset(); s.className = "msg-status ok"; s.textContent = "Thanks! Your message was sent."; }
-            else throw new Error(d.message || "fail");
-          }).catch(function () { s.className = "msg-status err"; s.textContent = "Couldn't send right now. Please email parker@skulldevops.com."; })
-            .finally(function () { b.disabled = false; });
-        });
+        var s = document.getElementById("msg-status");
+        if (/[?&]sent=1/.test(location.search)) { s.className = "msg-status ok"; s.textContent = "Thanks! Your message was sent."; }
+        document.getElementById("msg-form").addEventListener("submit", function () { s.className = "msg-status"; s.textContent = "Sending…"; });
       })();
     </script>
   </body>
