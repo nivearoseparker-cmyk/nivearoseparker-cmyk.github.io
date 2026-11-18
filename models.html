@@ -49,13 +49,14 @@
       </footer>
     </div>
     <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+    <script>window.addEventListener("error",e=>{const m=document.getElementById("vmsg");if(m&&/Loading 3D/.test(m.textContent))m.textContent="3D viewer error: "+(e.message||"script failed");});setTimeout(()=>{const m=document.getElementById("vmsg");if(m&&/Loading 3D/.test(m.textContent))m.textContent="The 3D viewer couldn't start in this browser. Try Chrome or Safari, or download the STL.";},15000);</script>
     <script type="module">
       import * as THREE from "three";
       import { OrbitControls } from "three/addons/controls/OrbitControls.js";
       import { STLLoader } from "three/addons/loaders/STLLoader.js";
       const MODELS = [{"name": "MacBook v2", "stl": "downloads/stl/MacBook-v2.stl", "f3d": "downloads/3D-Modeling/MacBook%20v2.f3d", "thumb": "downloads/previews/MacBook-v2.png"}];
       const box = document.getElementById("viewer"), msg = document.getElementById("vmsg"), vname = document.getElementById("vname");
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      let renderer; try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { msg.textContent = "3D needs WebGL, which this browser has turned off. You can still download the STL."; throw e; }
       renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); box.prepend(renderer.domElement);
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 10000);
