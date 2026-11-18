@@ -28,7 +28,7 @@
     <div class="page" id="top">
       <header class="nav glass"><nav class="seg back-nav" aria-label="Pages"><a href="index.html">← Home</a><a href="models.html" aria-current="page">3D Models</a><a href="downloads.html">Downloads</a><a href="run.html">Run Python</a><a href="contact.html">Send a message</a></nav></header>
       <main class="main">
-        <section class="section" id="viewer">
+        <section class="section" id="models">
           <div class="head">
             <p class="head__eyebrow">CAD</p>
             <h2>Spin my 3D models</h2>
@@ -49,7 +49,7 @@
         <nav aria-label="Pages"><a href="index.html">Home</a> · <a href="downloads.html">Downloads</a> · <a href="contact.html">Send a message</a></nav>
       </footer>
     </div>
-    <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+    <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }</script>
     <script>window.addEventListener("error",e=>{const m=document.getElementById("vmsg");if(m&&/Loading 3D/.test(m.textContent))m.textContent="3D viewer error: "+(e.message||"script failed");});setTimeout(()=>{const m=document.getElementById("vmsg");if(m&&/Loading 3D/.test(m.textContent))m.textContent="The 3D viewer couldn't start in this browser. Try Chrome or Safari, or download the STL.";},15000);</script>
     <script type="module">
       import * as THREE from "three";
