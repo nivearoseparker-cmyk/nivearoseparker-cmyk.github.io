@@ -41,7 +41,7 @@
             <a class="btn" id="dlstl" href="#" download>Download STL</a>
             <a class="link" id="dlf3d" href="#" download>Fusion 360 file</a>
           </div>
-          <div class="m-grid" id="grid"><button class="m-tile" data-i="0" type="button"><img src="downloads/previews/MacBook-v2.png" alt="" /><span>MacBook v2</span></button></div>
+          <div class="m-grid" id="grid"><button class="m-tile" data-i="0" type="button"><img src="downloads/previews/MacBook-v2.png" alt="" /><span>MacBook v2</span></button><button class="m-tile" data-i="1" type="button"><img src="downloads/previews/Nuts-and-Bolts-v3.png" alt="" /><span>Nuts and Bolts v3</span></button><button class="m-tile" data-i="2" type="button"><img src="downloads/previews/iPhone-Model-v7.png" alt="" /><span>iPhone Model v7</span></button></div>
         </section>
       </main>
       <footer class="foot">
@@ -55,7 +55,7 @@
       import * as THREE from "three";
       import { OrbitControls } from "three/addons/controls/OrbitControls.js";
       import { STLLoader } from "three/addons/loaders/STLLoader.js";
-      const MODELS = [{"name": "MacBook v2", "stl": "downloads/stl/MacBook-v2.stl", "f3d": "downloads/3D-Modeling/MacBook%20v2.f3d", "thumb": "downloads/previews/MacBook-v2.png"}];
+      const MODELS = [{"name": "MacBook v2", "stl": "downloads/stl/MacBook-v2.stl", "f3d": "downloads/3D-Modeling/MacBook%20v2.f3d", "thumb": "downloads/previews/MacBook-v2.png"}, {"name": "Nuts and Bolts v3", "stl": "downloads/stl/Nuts-and-Bolts-v3.stl", "f3d": "downloads/3D-Modeling/Nuts%20and%20Bolts%20v3.f3d", "thumb": "downloads/previews/Nuts-and-Bolts-v3.png"}, {"name": "iPhone Model v7", "stl": "downloads/stl/iPhone-Model-v7.stl", "f3d": "downloads/3D-Modeling/iPhone%20Model%20v7.f3d", "thumb": "downloads/previews/iPhone-Model-v7.png"}];
       const box = document.getElementById("viewer"), msg = document.getElementById("vmsg"), vname = document.getElementById("vname");
       let renderer; try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { msg.textContent = "3D needs WebGL, which this browser has turned off. You can still download the STL."; throw e; }
       renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); box.prepend(renderer.domElement);
