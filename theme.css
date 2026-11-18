@@ -45,3 +45,10 @@ table tbody tr:nth-child(even){ background:rgb(0 200 83 / .06); }
 }
 .band img{ width:100%!important; height:auto!important; aspect-ratio:auto!important; object-fit:contain!important; background:#fff; }
 .stat__fig{ display:inline-block; }
+
+/* Hero shows the Skull Dev Ops logo instead of a photo */
+.hero__img--logo{ object-fit:contain; object-position:center center; background:#04162e; }
+@media (max-width: 899px){
+  .hero__img--logo{ object-position:center top; }
+  .hero:has(.hero__img--logo) .hero__copy{ padding-top:calc(53vw + 8px); }
+}
