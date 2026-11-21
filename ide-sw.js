@@ -1,6 +1,6 @@
 // Skull Dev Ops IDE helper: lets the Python worker wait for keyboard input and sleep.
 // It only answers requests under /__ide/; everything else goes to the network as usual.
-const VERSION = "7"; // bump with run.html so phones pick up the new IDE
+const VERSION = "8"; // bump with run.html so phones pick up the new IDE
 const waiting = new Map();
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));

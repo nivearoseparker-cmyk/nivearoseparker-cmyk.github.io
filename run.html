@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#3c3c3c" />
     <title>Python IDE · Rose Parker · Skull Dev Ops</title>
-    <link rel="stylesheet" href="vendor/codemirror/codemirror.css?v=7" />
+    <link rel="stylesheet" href="vendor/codemirror/codemirror.css?v=8" />
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
@@ -224,6 +224,48 @@
       .spin { animation: spin 1s linear infinite; }
       @keyframes spin { to { transform: rotate(360deg); } }
 
+
+      /* ===== Save to GitHub: dialog, command palette, notifications ===== */
+      .ovl { position: fixed; inset: 0; z-index: 100; display: none; align-items: flex-start; justify-content: center; background: rgba(0,0,0,.4); padding: 44px 12px 12px; }
+      .ovl.on { display: flex; }
+      .dlg { width: 480px; max-width: 100%; max-height: calc(100% - 20px); overflow-y: auto; background: #252526; color: var(--fg); border: 1px solid #454545; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.6); }
+      .dlg-h { display: flex; align-items: center; gap: 8px; height: 35px; padding: 0 6px 0 14px; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: #bbbbbb; border-bottom: 1px solid #3c3c3c; }
+      .dlg-h svg.gh { width: 16px; height: 16px; color: #cccccc; }
+      .dlg-h .ib { margin-left: auto; }
+      .dlg-b { padding: 12px 14px 4px; display: flex; flex-direction: column; gap: 10px; }
+      .dlg-b .lbl { margin-bottom: -6px; }
+      .dlg-b .hint { font-size: 12px; color: var(--fg2); line-height: 1.5; margin: -2px 0 0; }
+      .dlg-b .hint b { color: #cccccc; font-weight: 600; }
+      .dlg-b .hint code { font: 11.5px var(--mono); background: rgba(255,255,255,.07); padding: 0 4px; border-radius: 3px; color: #d7ba7d; }
+      .seg { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; }
+      .seg label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+      .seg input { accent-color: #0e639c; margin: 0; width: 14px; height: 14px; }
+      .tokrow { display: flex; gap: 6px; }
+      .tokrow .field { flex: 1; min-width: 0; }
+      .tokrow .vbtn { flex: 0 0 auto; }
+      .dlg-f { display: flex; align-items: center; gap: 8px; padding: 12px 14px 14px; }
+      .dlg-f .grow { flex: 1; }
+      .lnk { color: #3794ff; font-size: 12px; background: none; text-decoration: none; }
+      .lnk:hover { text-decoration: underline; }
+      .lnk[hidden] { display: none; }
+      .dlg .err-msg { color: #f48771; font-size: 12px; min-height: 0; }
+      .qp { width: 600px; max-width: 100%; background: #252526; border: 1px solid #454545; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.6); padding: 6px; }
+      .qp .field { height: 26px; }
+      .qp ul { list-style: none; margin: 6px 0 0; padding: 0; }
+      .qp li { display: flex; align-items: center; gap: 8px; height: 24px; padding: 0 8px; border-radius: 3px; cursor: pointer; }
+      .qp li.sel { background: var(--focus); outline: 1px solid #007fd4; }
+      .qp li:hover { background: var(--hover); }
+      .qp li .cat { color: #cccccc; } .qp li .kb { margin-left: auto; color: var(--fg2); font-size: 12px; }
+      .toasts { position: fixed; right: 10px; bottom: 32px; z-index: 90; display: flex; flex-direction: column; gap: 8px; width: 400px; max-width: calc(100vw - 20px); }
+      .toast { background: #252526; border: 1px solid #454545; border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,.55); padding: 10px 6px 10px 12px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.45; }
+      .toast > svg { width: 16px; height: 16px; flex: 0 0 16px; margin-top: 2px; }
+      .toast.ok > svg { color: #3794ff; } .toast.bad > svg { color: #f14c4c; }
+      .toast .tx { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+      .toast .tx .acts { display: flex; gap: 8px; margin-top: 8px; }
+      .toast .tx .vbtn { height: 24px; font-size: 12px; text-decoration: none; display: inline-flex; }
+      .log a { color: #3794ff; }
+      .log .lv.ok { color: #89d185; }
+
       /* ===== phones / small screens ===== */
       @media (max-width: 760px) {
         :root { --ph: 40%; }
@@ -271,6 +313,12 @@
         .statusbar .wide { display: none; }
         #posbtn { pointer-events: none; }
         .statusbar .si { padding: 0 6px; }
+        .ovl { padding: 8px 8px; padding-top: calc(8px + env(safe-area-inset-top)); }
+        .dlg-h { height: 44px; font-size: 12px; }
+        .dlg-b { padding: 12px 14px 4px; gap: 12px; }
+        .seg { font-size: 15px; gap: 18px; } .seg input { width: 20px; height: 20px; }
+        .dlg-f .vbtn { height: 40px; } .lnk { font-size: 14px; padding: 8px 0; }
+        .toasts { right: 8px; left: 8px; width: auto; bottom: calc(32px + env(safe-area-inset-bottom)); }
       }
       @media (max-width: 380px) { .statusbar .py { display: none; } }
     </style>
@@ -287,6 +335,7 @@
           <button class="ab on" data-view="explorer" title="Explorer (Ctrl+Shift+E)" aria-label="Explorer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3H8a1 1 0 0 0-1 1v12.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7.5z"/><path d="M14.5 3v4.5H19"/><path d="M4 7v13a1 1 0 0 0 1 1h10"/></svg></button>
           <button class="ab" data-view="run" title="Run and Debug (Ctrl+Shift+D)" aria-label="Run"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M6 4.5v15l12.5-7.5z"/></svg></button>
           <button class="ab" data-view="packages" title="Packages (Ctrl+Shift+X)" aria-label="Packages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3.5 9.5h6v6h-6zM3.5 15.5h6v6h-6zM9.5 15.5h6v6h-6z"/><path d="M17 2.6l4.4 4.4-4.4 4.4-4.4-4.4z"/></svg></button>
+          <button class="ab" id="ghbtn" title="Save to GitHub" aria-label="Save to GitHub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18.5H6.5a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 17.6 8.1 4.5 4.5 0 0 1 17.5 18.5H17"/><path d="M12 20.5v-8M8.8 15.2 12 12l3.2 3.2"/></svg></button>
           <span class="grow"></span>
           <a class="ab" href="index.html" title="Home: skulldevops.com" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.5V20h4.5v-5.5h4V20h4.5V9.5"/></svg></a>
         </nav>
@@ -385,24 +434,55 @@
         <span class="si" id="stwrap"><span id="stico"></span><span id="state">Starting Python…</span></span>
         <span class="grow"></span>
         <button class="si" id="posbtn" title="Go to Line">Ln 1, Col 1</button>
+        <button class="si wide" id="ghsb" title="Save to GitHub"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.2a6.8 6.8 0 0 0-2.15 13.25c.34.06.47-.15.47-.33v-1.2c-1.9.41-2.3-.91-2.3-.91-.31-.79-.76-1-.76-1-.62-.42.05-.41.05-.41.68.05 1.04.7 1.04.7.6 1.04 1.59.74 1.98.56.06-.44.24-.74.43-.91-1.51-.17-3.1-.76-3.1-3.36 0-.74.27-1.35.7-1.83-.07-.17-.3-.86.07-1.8 0 0 .57-.18 1.87.7a6.5 6.5 0 0 1 3.4 0c1.3-.88 1.87-.7 1.87-.7.37.94.14 1.63.07 1.8.44.48.7 1.09.7 1.83 0 2.61-1.59 3.19-3.1 3.36.24.21.46.62.46 1.25v1.86c0 .18.12.4.47.33A6.8 6.8 0 0 0 8 1.2z"/></svg><span id="ghsbt">Save to GitHub</span></button>
         <span class="si wide">Spaces: 4</span>
         <span class="si wide">UTF-8</span>
         <span class="si wide">LF</span>
         <span class="si py">{ } Python 3.12 · Pyodide</span>
       </footer>
     </div>
+    <div class="ovl" id="ghovl" role="dialog" aria-modal="true" aria-labelledby="ghttl">
+      <form class="dlg" id="ghform" autocomplete="off" novalidate>
+        <div class="dlg-h"><svg class="gh" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.2a6.8 6.8 0 0 0-2.15 13.25c.34.06.47-.15.47-.33v-1.2c-1.9.41-2.3-.91-2.3-.91-.31-.79-.76-1-.76-1-.62-.42.05-.41.05-.41.68.05 1.04.7 1.04.7.6 1.04 1.59.74 1.98.56.06-.44.24-.74.43-.91-1.51-.17-3.1-.76-3.1-3.36 0-.74.27-1.35.7-1.83-.07-.17-.3-.86.07-1.8 0 0 .57-.18 1.87.7a6.5 6.5 0 0 1 3.4 0c1.3-.88 1.87-.7 1.87-.7.37.94.14 1.63.07 1.8.44.48.7 1.09.7 1.83 0 2.61-1.59 3.19-3.1 3.36.24.21.46.62.46 1.25v1.86c0 .18.12.4.47.33A6.8 6.8 0 0 0 8 1.2z"/></svg><span id="ghttl">Save to GitHub</span><button type="button" class="ib" id="ghclose" title="Close" aria-label="Close"><svg viewBox="0 0 16 16" fill="currentColor"><path d="m8 7.3 3.6-3.6.7.7L8.7 8l3.6 3.6-.7.7L8 8.7l-3.6 3.6-.7-.7L7.3 8 3.7 4.4l.7-.7z"/></svg></button></div>
+        <div class="dlg-b">
+          <label class="lbl" for="ghrepo">Repository (owner/name)</label>
+          <input class="field" id="ghrepo" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="nivearoseparker-cmyk/Python-Programming-2" />
+          <label class="lbl" for="ghbranch">Branch</label>
+          <input class="field" id="ghbranch" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="main" />
+          <label class="lbl" for="ghfolder">Folder path (optional)</label>
+          <input class="field" id="ghfolder" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Leave blank for the repo root, e.g. ide" />
+          <span class="lbl">Save</span>
+          <div class="seg" role="radiogroup" aria-label="Which files">
+            <label><input type="radio" name="ghscope" value="all" checked /><span id="ghallt">All files in the Explorer</span></label>
+            <label><input type="radio" name="ghscope" value="active" /><span id="ghactt">Only the active file</span></label>
+          </div>
+          <label class="lbl" for="ghtoken">GitHub personal access token</label>
+          <div class="tokrow"><input class="field" id="ghtoken" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="github_pat_…" /><button type="button" class="vbtn sec" id="ghshow" title="Show or hide the token">Show</button></div>
+          <p class="hint">Create a <b>fine-grained token</b> with access to only that repository and <b>Contents: Read and write</b>: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a>. It stays in this browser only and goes straight to GitHub.</p>
+          <div class="err-msg" id="gherr" role="alert"></div>
+        </div>
+        <div class="dlg-f">
+          <button type="button" class="lnk" id="ghforget" hidden>Forget token</button>
+          <span class="grow"></span>
+          <button type="button" class="vbtn sec" id="ghcancel">Cancel</button>
+          <button type="submit" class="vbtn" id="ghsave">Save</button>
+        </div>
+      </form>
+    </div>
+    <div class="ovl" id="qpovl"><div class="qp" role="dialog" aria-label="Command Palette"><input class="field" id="qpin" placeholder="Type a command" autocomplete="off" autocapitalize="off" spellcheck="false" /><ul id="qplist" role="listbox"></ul></div></div>
+    <div class="toasts" id="toasts" aria-live="polite"></div>
     <input type="file" id="upfile" accept=".py,.txt,.csv,.json" multiple hidden />
 
-    <script src="vendor/codemirror/codemirror.js?v=7"></script>
-    <script src="vendor/codemirror/mode/python/python.js?v=7"></script>
-    <script src="vendor/codemirror/addon/matchbrackets.js?v=7"></script>
-    <script src="vendor/codemirror/addon/closebrackets.js?v=7"></script>
-    <script src="vendor/codemirror/addon/active-line.js?v=7"></script>
-    <script src="vendor/codemirror/addon/comment.js?v=7"></script>
+    <script src="vendor/codemirror/codemirror.js?v=8"></script>
+    <script src="vendor/codemirror/mode/python/python.js?v=8"></script>
+    <script src="vendor/codemirror/addon/matchbrackets.js?v=8"></script>
+    <script src="vendor/codemirror/addon/closebrackets.js?v=8"></script>
+    <script src="vendor/codemirror/addon/active-line.js?v=8"></script>
+    <script src="vendor/codemirror/addon/comment.js?v=8"></script>
     <script>
     (() => {
       const SAMPLES = {"Python-Programming/classes.py": {"name": "classes.py", "file": "classes.py", "repo": "Python-Programming", "desc": "Story with classes: a short chat that asks you questions.", "code": "#Welsoome! This is my demoostration of classes in Python! A Short story introducing the user and \n#asking general questions only using functions, classes and variables.\n\n#This is the class of the Person in our story\nclass Person:\n    def __init__(self, name, age, dish):\n        self.name = name\n        self.age = age\n        self.dish = dish\n    #Self, Say hi to the user   \n    def say_hi(self):\n        print(\"Hello! My name is\", self.name)\n        \n     #Self, ask name of the user   \n    def ask_name(self):\n        user_input = input(\"What is your name? >>>\")\n        if user_input == user_input:\n           print(\"Cool name friend!\")\n    \n    #Self, ask favorite dish of the user  \n    def ask_fav(self):\n        user_input = input(\"What is your favorits dish? >>>\")\n        if user_input == user_input:\n            print(\"Yummy! Sounds delicious! Mine is\", p1.dish)       \n     \n    #Self, ask age of the user, but if it's a duplicate of my age then return a different messgae       \n    def ask_age(self):\n        user_input = input(\"How old are you? >>>\")\n        if user_input == \"22\":\n            print(\"Really? I'm\", self.age, \"as well!\")\n        else: \n            user_input == user_input\n            print(\"That's nice! I'm\", self.age)\n            \n    #Self, scold p2 from the conversation with the user\n    def scold(self):\n        user_input = input(\">>>\")\n        if user_input == user_input:\n            print(\"Don't speak to him friend...HEY! Go away Elon!\")\n            \n    #Self, p2 runs away crying, no matter what the user types\n    def cry(self):\n        user_input = input(\">>>\")\n        if user_input == user_input:\n            print(p2.name, \"*Runs away crying*\")\n            \n    #Self, laughs at p2 Running away     \n    def laugh(self):\n        user_input = input(\">>>\")\n        if user_input == user_input:\n            print(\"Ha Ha Ha! I hope that he cries at home!\")\n    \n    #Self, say bye to our new user friend    \n    def say_bye(self):\n        user_input = input(\"Welp, I'm leaving now! You headed home too? >>>\")\n        if user_input == user_input:\n            print(\"Bye friend!\")\n            \n#These are my characters, including me      \np1 = Person(\"Rose Parker\", 22, \"Chinese food\")\np2 = Person(\"Elon Musk\", 53, \"Ketchup\")\np3 = Person(\"Billy Grisham\", 23, \"Spaghetti\")\n\n#This is the story board using classes and functions that were earlier defined for the storyboard\np1.say_hi()\np1.ask_name()\np1.ask_age()\np1.ask_fav()\np2.say_hi()\np1.scold()\np2.cry()\np1.laugh()\np1.say_bye()\n\n        "}, "Python-Programming/smoothie.py": {"name": "smoothie.py", "file": "smoothie.py", "repo": "Python-Programming", "desc": "Smoothie Commands: a quirky terminal experience.", "code": "# This is \"Smoothie Commands\" a weird terminal experience. First I add my names list so users can select their preferred person when they log onto the console\nname_list = [\"Rose, Elon\"]\nname = \"Rose\"\nage = 22\n# I add only 2 users, for example Myself, and Elon Musk, he's not as important as me right now\n# I start with a simple print of the name and age oonce the user logs onto the console and the second print line is a nice Greeting, the name oof the user and verification\nprint (name, age)\nprint (\"Welcome,\", name, \",in order to continue you must type a number below to verify yourself...\")\n# For the verification, I use a simnple equation soo that when a user types any number, that number is multiplied by 12, that number will be our verification code\nnumber = input(\"Type any number to get a generated verification code, you'll have to remember your code for later>>>>\")\ntry:\n    print(\"Your code is:\", 12 * int(number))\n    number = input(\"Enter your code>>>\")\n# I make sure that the user can only attempt to enter a number 2 times before being locked out of the console and they have to restart the process\n# After the number is entered, the number will multiply by 12\nexcept:\n    print(\"That is not a number...\")\n    number = input(\"*1 attempt left*, Enter a number>>>\")\n    print(\"Your code is:\", 12 * int(number))\n    number = input (\"Type your code here, do not share>>>\")\n    # Now if the user didn't enter a number, they will get a warning they'll have too try again later\n    print(\"That is not a number...Try again later\")\n\n# Now if the number was entered correctly, they will continue to the Smoothie console\n\nprint(\"Success!\")\n\n# This is where I add a greeting to the user logged onto the console, Rose or Elon\n\nprint(\"Wecome to ManiText!\")\nprint(\"Today, in this enviorment, we're going to be making a delicious smoothie for the user!\")\n# This displays the name list of all users, the users names are keywoords in oordr to continue\nprint (\"Users - \", name_list)\nprint (\"To exit, enter any key\")\n# I tell them to enter a user's name below, and the game will continue, after the user types the ingridients, the console will ask to blend it\nwhile True:\n    user_input = input(\"Start Typing a name to make a smoothie for that person>>>\")\n    if user_input == \"Elon\":\n        print(\"Let's Begin! Stary by picking a fruit for the smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add 1 more fruit to our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add milk our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"1 Cup - Dairy Milk\")\n        print(\"1 Cup - Oat Milk\")\n        input(\">>>\")\n        print(\"Okay! Now, let's blend our smoothie! It'll take a little while...ok?\")\n        # The user types \"ok\"\n        input(\">>>\")\n        print(\">>>Blend?<<<\")\n        # The user types \"yes\"\n        input(\">>>\")\n        #The console coounts down while the smoothie blends\n        print(\"3...\")\n        print(\"2...\")\n        print(\"1...\")\n        print(\"Done!\")\n        print (\"The smoothie is done! Thanks for playing and enjoy your smoothie!\")\n        #And once the smooothie is complete, the console shuts down\n        break\n        \n        # This is for the second User, same rules and same inputs\n    elif user_input == \"Rose\":\n        print(\"Let's Begin! Stary by picking a fruit for the smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add 1 more fruit to our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add milk to our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"1 Cup - Dairy Milk\")\n        print(\"1 Cup - Oat Milk\")\n        input(\">>>\")\n        print(\"Okay! Now, let's blend our smoothie! It'll take a little while...ok?\")\n        input(\">>>\")\n        print(\">>>Blend?<<<\")\n        input(\">>>\")\n        print(\"3...\")\n        print(\"2...\")\n        print(\"1...\")\n        print(\"Done!\")\n        print (\"The smoothie is done! Thanks for playing and enjoy your smoothie!\")\n        #And once the smooothie is complete, the console shuts down\n        break\n        \n        #If the user refuses to enters anything but keywords: \"Rose\" or, \"Elon\", the console will ask to shut down\n    else:\n        print (\"Are you sure you want to exit?\")\n        user_input == input(\">>>\")\n        # If the user types yes, Smoothie will shut down\n        if user_input == \"yes\":\n            break\n        \n        print (\"Goodbye\")\n        break\n"}, "AppRuntime---Python/github.py": {"name": "github.py", "file": "github.py", "repo": "AppRuntime---Python", "desc": "AppRuntime: a runtime countdown sequence.", "code": "#Rose Parker - GitHub Link\nimport time\n\nmy_website = \"http://github.com/skulldevops/\"\n\nslice = slice(7, -1)\n\nprint(\"...\")\n\nprint(my_website[slice])\n\nfor seconds in range(3, 0, -1):\n    print(seconds)\n    time.sleep(1)\nprint(\"Continue...\")"}, "Data-Analysis---Python/chart.py": {"name": "chart.py", "file": "chart.py", "repo": "Data-Analysis---Python", "desc": "Data Analysis: a Matplotlib sales chart.", "code": "#Welcome! This is a simple chart usng MatPlotLib. - Rose Parker\n#_____Imports_____\nimport matplotlib.pyplot as plt\n\nplt.title(\"Product Sold\")\nx = [\"Jan\", \"Feb\", \"Mar\", \"Apr\", \"May\", \"Jun\", \"Jul\", \"Aug\", \"Sep\", \"Oct\", \"Nov\", \"Dec\"]\ny = [10,25,50,75,100,150,200, 250, 300, 350, 400, 450]\ncolors = [\"blue\", \"purple\"]\n\n#Plotting the chart\nplt.plot(x,y, color=\"blue\", marker=\"o\")\nplt.fill_between(x, y, color=\"blue\", alpha=0.2)\nplt.grid()\nplt.legend([\"Company Product Sold\"])\nplt.xticks(rotation=45)\nplt.tight_layout()\nplt.savefig(\"chart.png\")\nplt.xlabel(\"Months\")\nplt.ylabel(\"Products Sold\")\nplt.title(\"Products Sold\")\nplt.show()  # Display the chart\n#End of code\n"}, "scratch": {"name": "My code", "file": "main.py", "repo": "", "desc": "Start from scratch.", "code": "print(\"Hello from Skull Dev Ops!\")\nname = input(\"What is your name? \")\nprint(\"Nice to meet you,\", name)\n"}};
-      const VERSION = "7";
+      const VERSION = "8";
       const KEY = "sdo-ide-v1", UIKEY = "sdo-ide-ui";
       const $ = id => document.getElementById(id);
       const out = $("out"), plots = $("plots"), tabsEl = $("tabs"), term = $("term"), treeEl = $("tree");
@@ -818,6 +898,170 @@
       }
       pipbtn.onclick = () => { const v = $("pipname").value.trim(); if (!v) return; $("pipname").value = ""; closeSidebarOnPhone(); pip(v.split(/[\s,]+/).filter(Boolean), false); };
       $("pipname").onkeydown = e => { if (e.key === "Enter") pipbtn.click(); };
+
+      // ---------- Save to GitHub (client-side, GitHub REST contents API) ----------
+      // Settings + token live only in this browser under their own key. The token is never logged or printed.
+      const GHKEY = "sdo-gh-v1";
+      const GH_DEFAULT = { repo: "nivearoseparker-cmyk/Python-Programming-2", branch: "main", folder: "", scope: "all" };
+      let gh; try { gh = Object.assign({}, GH_DEFAULT, JSON.parse(localStorage.getItem(GHKEY)) || {}); } catch (e) { gh = Object.assign({}, GH_DEFAULT); }
+      const saveGH = () => { try { localStorage.setItem(GHKEY, JSON.stringify(gh)); } catch (e) {} };
+      const ghovl = $("ghovl"), ghform = $("ghform"), gherr = $("gherr"), ghtok = $("ghtoken");
+      const INFO = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm-.6 3h1.2v1.2H7.4zm0 2.4h1.2V11H7.4z"/></svg>';
+      let ghBusy = false;
+      function ghLog(html, kind) {
+        const l = $("log"); const lv = kind === "e" ? '<span class="lv e">[error]</span>' : kind === "ok" ? '<span class="lv ok">[github]</span>' : '<span class="lv">[github]</span>';
+        l.insertAdjacentHTML("beforeend", '<span class="t">' + stamp() + "</span> " + lv + " " + html + "\n"); l.scrollTop = l.scrollHeight;
+      }
+      function toast(html, kind, link, linkText) {
+        const t = document.createElement("div"); t.className = "toast " + (kind || "ok");
+        t.innerHTML = (kind === "bad" ? ERRI : INFO) + '<div class="tx">' + html + '<div class="acts">' + (link ? '<a class="vbtn" target="_blank" rel="noopener" href="' + esc(link) + '">' + esc(linkText || "Open on GitHub") + "</a>" : "") + "</div></div>" + '<button class="ib" title="Close" aria-label="Close notification">' + X + "</button>";
+        t.querySelector(".ib").onclick = () => t.remove();
+        if (!link) t.querySelector(".acts").remove();
+        const box = $("toasts"); box.appendChild(t); while (box.children.length > 3) box.firstChild.remove();
+        if (kind !== "bad") setTimeout(() => t.remove(), 12000);
+      }
+      function parseRepo(v) {
+        v = (v || "").trim().replace(/^https?:\/\/(www\.)?github\.com\//i, "").replace(/\.git$/i, "").replace(/^\/+|\/+$/g, "");
+        const m = v.match(/^([A-Za-z0-9-]+)\/([A-Za-z0-9._-]+)$/); return m ? { owner: m[1], repo: m[2] } : null;
+      }
+      const cleanFolder = v => (v || "").trim().replace(/\\/g, "/").split("/").map(x => x.trim()).filter(x => x && x !== "." && x !== "..").join("/");
+      const encPath = pth => pth.split("/").map(encodeURIComponent).join("/");
+      function b64utf8(str) {
+        const bytes = new TextEncoder().encode(str); let bin = "";
+        for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+        return btoa(bin);
+      }
+      function openGH() {
+        if (ghBusy) { toast("Still saving to GitHub…"); return; }
+        closeSidebarOnPhone(); closeQP();
+        const p = P(), f = p.active >= 0 ? p.files[p.active] : null;
+        $("ghrepo").value = gh.repo; $("ghbranch").value = gh.branch; $("ghfolder").value = gh.folder || "";
+        ghtok.value = ""; ghtok.type = "password"; $("ghshow").textContent = "Show";
+        ghtok.placeholder = gh.token ? "Saved in this browser (leave blank to keep it)" : "github_pat_…";
+        $("ghforget").hidden = !gh.token;
+        $("ghallt").textContent = "All files in the Explorer (" + p.files.length + ")";
+        $("ghactt").textContent = f ? "Only " + f.name : "Only the active file";
+        const act = ghform.querySelector('input[value=active]'); act.disabled = !f;
+        ghform.querySelector('input[value=' + (gh.scope === "active" && f ? "active" : "all") + ']').checked = true;
+        gherr.textContent = ""; ghovl.classList.add("on");
+        setTimeout(() => (gh.token ? $("ghsave") : ghtok).focus({ preventScroll: true }), 30);
+      }
+      function closeGH() { ghovl.classList.remove("on"); ghtok.value = ""; }
+      $("ghbtn").onclick = openGH; $("ghsb").onclick = openGH;
+      $("ghclose").onclick = closeGH; $("ghcancel").onclick = closeGH;
+      ghovl.addEventListener("click", e => { if (e.target === ghovl) closeGH(); });
+      $("ghshow").onclick = () => { const s = ghtok.type === "password"; ghtok.type = s ? "text" : "password"; $("ghshow").textContent = s ? "Hide" : "Show"; };
+      function forgetToken() { delete gh.token; saveGH(); ghtok.placeholder = "github_pat_…"; $("ghforget").hidden = true; ghLog("Token removed from this browser."); setState("GitHub token forgotten", "ready"); toast("GitHub token removed from this browser."); }
+      $("ghforget").onclick = () => { forgetToken(); ghtok.focus(); };
+      ghform.onsubmit = e => {
+        e.preventDefault(); gherr.textContent = "";
+        const r = parseRepo($("ghrepo").value || GH_DEFAULT.repo);
+        if (!r) { gherr.textContent = "Repository should look like owner/name."; $("ghrepo").focus(); return; }
+        const branch = ($("ghbranch").value || "main").trim();
+        const tok = ghtok.value.trim() || gh.token;
+        if (!tok) { gherr.textContent = "Paste a GitHub token first (see the note below the field)."; ghtok.focus(); return; }
+        if (/\s/.test(tok)) { gherr.textContent = "That token has spaces in it. Copy it again from GitHub."; ghtok.focus(); return; }
+        const scope = ghform.querySelector('input[name=ghscope]:checked').value;
+        Object.assign(gh, { repo: r.owner + "/" + r.repo, branch, folder: cleanFolder($("ghfolder").value), scope, token: tok }); saveGH();
+        closeGH(); pushToGitHub(scope);
+      };
+      function ghErrText(st, j, where) {
+        const m = (j && j.message) ? j.message : "";
+        if (st === 401) return "GitHub didn't accept the token (401). It may be mistyped, expired or revoked. Make a new one and paste it in Save to GitHub.";
+        if (st === 403 && /rate limit/i.test(m)) return "GitHub's rate limit was hit (403). Wait a few minutes and try again.";
+        if (st === 403) return "The token can't write to this repository (403). Edit the token on GitHub: give it access to this repo and set Contents to Read and write.";
+        if (st === 404) return where === "repo" ? "Repository or branch not found (404). Check the name and branch, and that the token has access to this repo." : "Not found (404). Check the repository, branch and folder, and that the token has access to this repo.";
+        if (st === 409) return "GitHub reported a conflict (409): the file or branch changed while saving. Try Save again.";
+        if (st === 422) return "GitHub rejected the file (422)" + (m ? ": " + m : "") + ".";
+        if (st === 0) return "Couldn't reach GitHub. Check your connection and try again.";
+        return "GitHub error " + st + (m ? ": " + m : "") + ".";
+      }
+      async function ghFetch(url, opt) {
+        opt = opt || {};
+        const headers = Object.assign({ "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "Authorization": "Bearer " + gh.token }, opt.headers || {});
+        try { const res = await fetch(url, Object.assign({}, opt, { headers, cache: "no-store" })); let j = null; try { j = await res.json(); } catch (e) {} return { st: res.status, j }; }
+        catch (e) { return { st: 0, j: null }; }
+      }
+      async function pushToGitHub(scope) {
+        const p = P(); const r = parseRepo(gh.repo); const branch = gh.branch || "main"; const folder = cleanFolder(gh.folder);
+        const files = scope === "active" && p.active >= 0 ? [p.files[p.active]] : p.files.slice();
+        if (!files.length) return;
+        ghBusy = true; setPanel("output");
+        const API = "https://api.github.com/repos/" + encodeURIComponent(r.owner) + "/" + encodeURIComponent(r.repo);
+        const repoUrl = "https://github.com/" + r.owner + "/" + r.repo;
+        ghLog("Saving " + files.length + " file" + (files.length > 1 ? "s" : "") + " to " + esc(r.owner + "/" + r.repo) + " (" + esc(branch) + (folder ? ", /" + esc(folder) : "") + ")…");
+        setState("Saving to GitHub…", "busy");
+        const fail = (msg) => { ghLog(esc(msg), "e"); setState("Save to GitHub failed", "err"); toast(esc(msg), "bad"); ghBusy = false; };
+        // check the repo + branch (and the token) once up front
+        const b = await ghFetch(API + "/branches/" + encodeURIComponent(branch));
+        if (b.st !== 200) return fail(ghErrText(b.st, b.j, "repo"));
+        const saved = [];
+        for (const f of files) {
+          const path = (folder ? folder + "/" : "") + f.name;
+          const url = API + "/contents/" + encPath(path);
+          let done = false, lastErr = null;
+          for (let attempt = 0; attempt < 2 && !done; attempt++) {
+            const g = await ghFetch(url + "?ref=" + encodeURIComponent(branch));
+            let sha;
+            if (g.st === 200 && g.j && !Array.isArray(g.j)) sha = g.j.sha;
+            else if (g.st === 200) { lastErr = path + " is a folder in the repo, not a file."; break; }
+            else if (g.st !== 404) { lastErr = ghErrText(g.st, g.j); break; }
+            if (sha && g.j.content !== undefined && g.j.encoding === "base64") {
+              try { if (g.j.content.replace(/\n/g, "") === b64utf8(f.code)) { saved.push({ name: f.name, path, url: g.j.html_url, same: true }); done = true; break; } } catch (e) {}
+            }
+            const body = { message: "Save " + f.name + " from Skull Dev Ops IDE", content: b64utf8(f.code), branch };
+            if (sha) body.sha = sha;
+            const u = await ghFetch(url, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+            if (u.st === 200 || u.st === 201) { saved.push({ name: f.name, path, url: u.j && u.j.content ? u.j.content.html_url : repoUrl + "/blob/" + encodeURIComponent(branch) + "/" + encPath(path), created: u.st === 201, commit: u.j && u.j.commit ? u.j.commit.sha : "" }); done = true; }
+            else if (u.st === 409 && attempt === 0) { continue; } // file changed on GitHub: refetch its sha once and retry
+            else { lastErr = ghErrText(u.st, u.j); break; }
+          }
+          if (!done) { saved.forEach(s => ghLog((s.same ? "Unchanged " : "Saved ") + '<a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.path) + "</a>", "ok")); return fail(f.name + ": " + (lastErr || ghErrText(409))); }
+          ghLog((saved[saved.length - 1].same ? "Unchanged (already up to date) " : saved[saved.length - 1].created ? "Created " : "Updated ") + '<a href="' + esc(saved[saved.length - 1].url) + '" target="_blank" rel="noopener">' + esc(path) + "</a>", "ok");
+        }
+        ghBusy = false;
+        const one = saved.length === 1;
+        const link = one ? saved[0].url : repoUrl + "/tree/" + encodeURIComponent(branch) + (folder ? "/" + encPath(folder) : "");
+        const nsame = saved.filter(s => s.same).length;
+        const msg = nsame === saved.length ? (one ? saved[0].name + " is already up to date on GitHub" : "All " + saved.length + " files are already up to date on GitHub") : one ? "Saved " + saved[0].name + " to GitHub" : "Saved " + saved.length + " files to GitHub" + (nsame ? " (" + nsame + " unchanged)" : "");
+        ghLog(esc(msg) + ': <a href="' + esc(link) + '" target="_blank" rel="noopener">' + esc(link) + "</a>", "ok");
+        setState(msg, "ready");
+        toast(esc(msg) + ' <span style="color:var(--fg2)">· ' + esc(r.owner + "/" + r.repo) + "</span>", "ok", link, one ? "Open file on GitHub" : "Open on GitHub");
+      }
+
+      // ---------- Command Palette (Ctrl/⌘+Shift+P or F1) ----------
+      const qpovl = $("qpovl"), qpin = $("qpin"), qplist = $("qplist");
+      const CMDS = [
+        { t: "GitHub: Save to GitHub…", k: "", f: () => openGH() },
+        { t: "GitHub: Save Active File to GitHub", k: "", f: () => { if (!gh.token || P().active < 0) { gh.scope = "active"; openGH(); } else pushToGitHub("active"); } },
+        { t: "GitHub: Forget Token", k: "", f: () => gh.token ? forgetToken() : toast("No GitHub token is saved in this browser.") },
+        { t: "Python: Run Python File", k: isMac ? "⌘↵" : "Ctrl+Enter", f: () => run() },
+        { t: "View: Toggle Panel", k: "Ctrl+`", f: () => togglePanel() },
+        { t: "File: Download Active File", k: "", f: () => $("dlbtn").click() },
+        { t: "File: New File…", k: "", f: () => newFile() }
+      ];
+      let qpSel = 0, qpItems = CMDS;
+      function drawQP() {
+        const q = qpin.value.trim().toLowerCase().replace(/^>\s*/, "");
+        qpItems = CMDS.filter(c => !q || q.split(/\s+/).every(w => c.t.toLowerCase().includes(w)));
+        qpSel = Math.min(qpSel, Math.max(0, qpItems.length - 1));
+        qplist.innerHTML = qpItems.length ? qpItems.map((c, i) => { const [cat, rest] = c.t.split(": "); return '<li role="option" data-i="' + i + '" class="' + (i === qpSel ? "sel" : "") + '"><span><span class="cat">' + esc(cat) + ":</span> " + esc(rest) + '</span><span class="kb">' + esc(c.k) + "</span></li>"; }).join("") : '<li style="cursor:default;color:var(--fg2)">No matching commands</li>';
+      }
+      function openQP() { if (ghovl.classList.contains("on")) return; qpin.value = ""; qpSel = 0; drawQP(); qpovl.classList.add("on"); setTimeout(() => qpin.focus(), 0); }
+      function closeQP() { qpovl.classList.remove("on"); }
+      function runQP(i) { const c = qpItems[i]; closeQP(); if (c) c.f(); }
+      qpin.oninput = () => { qpSel = 0; drawQP(); };
+      qpin.onkeydown = e => {
+        if (e.key === "ArrowDown") { e.preventDefault(); qpSel = (qpSel + 1) % Math.max(1, qpItems.length); drawQP(); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); qpSel = (qpSel - 1 + qpItems.length) % Math.max(1, qpItems.length); drawQP(); }
+        else if (e.key === "Enter") { e.preventDefault(); runQP(qpSel); }
+      };
+      qplist.onclick = e => { const li = e.target.closest("li[data-i]"); if (li) runQP(+li.dataset.i); };
+      qpovl.addEventListener("click", e => { if (e.target === qpovl) closeQP(); });
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape") { if (qpovl.classList.contains("on")) { e.preventDefault(); closeQP(); } else if (ghovl.classList.contains("on")) { e.preventDefault(); closeGH(); } return; }
+        if (((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "p" || e.key === "P")) || e.key === "F1") { e.preventDefault(); qpovl.classList.contains("on") ? closeQP() : openQP(); }
+      }, true);
 
       // ---------- start ----------
       if (!SAMPLES[store.current]) store.current = cur;
