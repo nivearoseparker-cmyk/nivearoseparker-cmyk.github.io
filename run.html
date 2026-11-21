@@ -2,267 +2,829 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#3c3c3c" />
     <title>Python IDE · Rose Parker · Skull Dev Ops</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" />
-    <link rel="stylesheet" href="hark.css" />
-    <link rel="stylesheet" href="theme.css?v=6" />
-    <link rel="stylesheet" href="vendor/codemirror/codemirror.css" />
-    <style>
-      .back-nav { display: flex; gap: 16px; align-items: center; padding: 12px 16px; flex-wrap: wrap; }
-      .ide { --ink:#0b0f14; --panel:#0f1620; --line:#1f2a37; --mute:#8b9bb0; --txt:#e6edf3;
-        background: var(--ink); color: var(--txt); border-radius: 18px; overflow: hidden; border: 1px solid var(--line);
-        box-shadow: 0 10px 40px rgb(0 87 255 / .25); font-family: Geist, system-ui, sans-serif; }
-      .ide button, .ide select, .ide input { font: inherit; color: inherit; }
-      .ide-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
-      .ide-top select { flex-basis: 260px; background: #16202c; border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; max-width: 100%; flex: 1 1 200px; min-width: 0; }
-      .tb { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: #16202c; border-radius: 10px; padding: 7px 12px; cursor: pointer; white-space: nowrap; font-size: 14px; }
-      .tb:hover { background: #1c2836; }
-      .tb[disabled] { opacity: .45; cursor: default; }
-      .tb.run { background: linear-gradient(90deg,#0057ff,#00d4ff 55%,#00c853); border: 0; color: #fff; font-weight: 600; }
-      .tb.stop { color: #fca5a5; }
-      .tb kbd { font: 11px "Geist Mono", monospace; opacity: .8; }
-      .spacer { flex: 1; }
-      @media (max-width: 599px) { .tb { padding: 6px 10px; font-size: 13px; } .tb kbd { display: none; } .ide-top .spacer { display: none; } .CodeMirror { font-size: 13px; } }
-      .tabs { display: flex; gap: 2px; overflow-x: auto; background: var(--panel); border-bottom: 1px solid var(--line); padding: 0 6px; scrollbar-width: thin; }
-      .tab { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; font: 13px "Geist Mono", monospace; color: var(--mute); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
-      .tab.on { color: var(--txt); border-bottom-color: #00d4ff; background: var(--ink); }
-      .tab .x { opacity: .5; border: 0; background: none; cursor: pointer; padding: 0 2px; }
-      .tab .x:hover { opacity: 1; color: #fca5a5; }
-      .tab.main::before { content: "▶"; font-size: 9px; color: #39ff88; }
-      .tab.add { color: #67e8f9; }
-      .panes { display: grid; grid-template-columns: minmax(0,1fr); }
-      .panes > * { min-width: 0; }
-      @media (min-width: 1000px) { .panes { grid-template-columns: minmax(0,1.25fr) minmax(0,1fr); } .term-wrap { border-left: 1px solid var(--line); border-top: 0 !important; } }
-      .CodeMirror { height: 460px; font: 14px/1.55 "Geist Mono", ui-monospace, monospace; background: var(--ink); color: #e6edf3; }
-      @media (max-width: 999px) { .CodeMirror { height: 52vh; min-height: 300px; } }
-      .CodeMirror-gutters { background: var(--ink); border-right: 1px solid var(--line); }
-      .CodeMirror-linenumber { color: #4b5b70; }
-      .CodeMirror-cursor { border-left: 2px solid #00d4ff; }
-      .CodeMirror-activeline-background { background: #121c28; }
-      .CodeMirror-selected, .CodeMirror-focused .CodeMirror-selected { background: #1d3b5c !important; }
-      .CodeMirror-matchingbracket { color: #39ff88 !important; text-decoration: underline; }
-      .cm-s-sdo .cm-keyword { color: #c084fc; } .cm-s-sdo .cm-def { color: #67e8f9; } .cm-s-sdo .cm-variable-2 { color: #93c5fd; } .cm-s-sdo .cm-builtin { color: #39ff88; }
-      .cm-s-sdo .cm-string { color: #fcd34d; } .cm-s-sdo .cm-number { color: #fb923c; } .cm-s-sdo .cm-comment { color: #64748b; font-style: italic; }
-      .cm-s-sdo .cm-operator { color: #e2e8f0; } .cm-s-sdo .cm-property { color: #a5f3fc; } .cm-s-sdo .cm-meta { color: #f472b6; } .cm-s-sdo .cm-atom { color: #fb923c; }
-      .term-wrap { display: flex; flex-direction: column; border-top: 1px solid var(--line); min-height: 260px; }
-      .term-head { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: 12px; color: var(--mute); background: var(--panel); border-bottom: 1px solid var(--line); }
-      .dot { width: 8px; height: 8px; border-radius: 50%; background: #64748b; }
-      .dot.ready { background: #39ff88; } .dot.busy { background: #fcd34d; } .dot.err { background: #f87171; }
-      .term { flex: 1; margin: 0; padding: 12px 14px; font: 13.5px/1.5 "Geist Mono", ui-monospace, monospace; color: #d1fae5; white-space: pre-wrap; overflow-wrap: anywhere; overflow: auto; max-height: 460px; min-height: 200px; }
-      .term .err { color: #fca5a5; } .term .sys { color: #67e8f9; } .term .in { color: #fde68a; }
-      .inrow { display: none; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); background: #101a24; }
-      .inrow.on { display: flex; }
-      .inrow span { color: #39ff88; font: 13px "Geist Mono", monospace; }
-      .inrow input { flex: 1; min-width: 0; background: #0b1118; border: 1px solid #00d4ff; border-radius: 8px; padding: 8px 10px; font: 14px "Geist Mono", monospace; outline: none; }
-      .plots { padding: 0 12px; } .plots img { max-width: 100%; border-radius: 10px; background: #fff; margin: 10px 0; }
-      .ide-foot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; background: var(--panel); border-top: 1px solid var(--line); font-size: 13px; color: var(--mute); }
-      .ide-foot input { background: #16202c; border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; width: 170px; }
-      .tips { margin-top: 12px; }
-      .tips kbd { font: 12px "Geist Mono", monospace; border: 1px solid rgba(127,127,127,.4); border-radius: 5px; padding: 1px 5px; }
-      .sr { position: absolute; left: -9999px; }
-    </style>
+    <link rel="stylesheet" href="vendor/codemirror/codemirror.css?v=7" />
     <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-</head>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <style>
+      /* ===== VS Code Dark+ / Dark Modern look ===== */
+      :root {
+        --editor:#1e1e1e; --side:#252526; --act:#333333; --tabs:#2d2d2d; --title:#3c3c3c; --blue:#007acc;
+        --fg:#cccccc; --fg2:#9d9d9d; --muted:#858585; --border:#3c3c3c; --hover:#2a2d2e; --sel:#37373d; --focus:#04395e;
+        --btn:#0e639c; --btn-h:#1177bb; --red:#f14c4c; --yellow:#cca700; --green:#89d185;
+        --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Ubuntu, "Helvetica Neue", sans-serif;
+        --mono: Consolas, Menlo, "Cascadia Code", "SF Mono", Monaco, "Courier New", monospace;
+        --ph: 32%;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; background: var(--editor); color: var(--fg); font: 13px/1.4 var(--ui); overflow: hidden; -webkit-text-size-adjust: 100%; }
+      button, input, select { font: inherit; color: inherit; }
+      button { background: none; border: 0; cursor: pointer; padding: 0; }
+      a { color: #3794ff; }
+      svg { display: block; }
+      .sr { position: absolute; left: -9999px; }
+      #app { position: fixed; inset: 0; display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+
+      /* title bar */
+      .titlebar { flex: 0 0 auto; height: 30px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; background: var(--title); color: var(--fg); font-size: 12px; border-bottom: 1px solid #2b2b2b; padding: 0 6px; padding-top: env(safe-area-inset-top); }
+      .titlebar .home { display: inline-flex; align-items: center; gap: 6px; color: var(--fg); text-decoration: none; opacity: .85; padding: 0 6px; height: 100%; justify-self: start; white-space: nowrap; }
+      .titlebar .home:hover { opacity: 1; background: rgba(255,255,255,.08); }
+      .titlebar .home img { width: 16px; height: 16px; border-radius: 3px; }
+      .titlebar .ttl { color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60vw; }
+      .titlebar .ttl b { font-weight: 400; color: #e7e7e7; }
+      .titlebar .menu { justify-self: end; display: flex; gap: 2px; }
+      .titlebar .menu a { color: var(--fg2); text-decoration: none; padding: 4px 8px; border-radius: 4px; }
+      .titlebar .menu a:hover { background: rgba(255,255,255,.08); color: var(--fg); }
+
+      .main { flex: 1 1 auto; display: flex; min-height: 0; position: relative; }
+
+      /* activity bar */
+      .activity { flex: 0 0 48px; width: 48px; background: var(--act); display: flex; flex-direction: column; align-items: stretch; z-index: 30; }
+      .activity .ab { position: relative; height: 48px; display: flex; align-items: center; justify-content: center; color: #858585; text-decoration: none; }
+      .activity .ab svg { width: 24px; height: 24px; }
+      .activity .ab:hover { color: #e7e7e7; }
+      .activity .ab.on { color: #ffffff; }
+      .activity .ab.on::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #ffffff; }
+      .activity .grow { flex: 1; }
+
+      /* sidebar */
+      .sidebar { flex: 0 0 260px; width: 260px; background: var(--side); border-right: 1px solid #2b2b2b; display: flex; flex-direction: column; min-height: 0; overflow: hidden; z-index: 25; }
+      .sidebar.collapsed { display: none; }
+      .view { display: none; flex-direction: column; min-height: 0; flex: 1; overflow-y: auto; overflow-x: hidden; }
+      .view.on { display: flex; }
+      .vhead { display: flex; align-items: center; height: 35px; padding: 0 8px 0 20px; font-size: 11px; letter-spacing: .04em; color: #bbbbbb; text-transform: uppercase; flex: 0 0 auto; }
+      .vhead .acts { margin-left: auto; display: flex; gap: 2px; }
+      .ib { width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 5px; color: #c5c5c5; }
+      .ib:hover { background: rgba(90,93,94,.31); }
+      .ib svg { width: 16px; height: 16px; }
+      .sect-h { display: flex; align-items: center; gap: 2px; width: 100%; height: 22px; padding: 0 4px; font-size: 11px; font-weight: 700; letter-spacing: .02em; color: #cccccc; text-transform: uppercase; text-align: left; }
+      .sect-h .chev { width: 16px; height: 16px; transition: transform .1s; }
+      .sect.shut .chev { transform: rotate(-90deg); }
+      .sect.shut .sect-b { display: none; }
+      .tree { list-style: none; margin: 0; padding: 0; }
+      .row { display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px 0 var(--ind, 20px); cursor: pointer; color: var(--fg); white-space: nowrap; border: 1px solid transparent; position: relative; }
+      .row:hover { background: var(--hover); }
+      .row.cur { background: var(--sel); }
+      .row.act { background: var(--focus); border-color: #007fd4; }
+      .row .nm { overflow: hidden; text-overflow: ellipsis; }
+      .row .desc { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+      .row .badge { margin-left: auto; font-size: 10px; color: #89d185; border: 1px solid #89d18566; border-radius: 3px; padding: 0 4px; line-height: 14px; }
+      .row .ra { display: none; margin-left: auto; gap: 2px; }
+      .row:hover .ra, .row.act .ra { display: flex; }
+      .row:hover .badge, .row.act .badge { display: none; }
+      .row .ib { width: 20px; height: 20px; }
+      .row .ib svg { width: 14px; height: 14px; }
+      .fi { width: 16px; height: 16px; flex: 0 0 16px; }
+      .row.newf { color: var(--fg2); }
+      .desk { list-style: none; margin: 0; padding: 0; }
+      .desk li a { display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px 0 20px; color: var(--fg); text-decoration: none; }
+      .desk li a::before { content: ""; width: 16px; height: 16px; flex: 0 0 16px; background: no-repeat center/14px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23c5c5c5' d='M8 11.5 4 7.5l.9-.9L7.4 9V2h1.2v7l2.5-2.4.9.9zM3 13h10v1.2H3z'/%3E%3C/svg%3E"); }
+      .desk li a:hover { background: var(--hover); }
+      .note { color: var(--fg2); font-size: 12px; line-height: 1.5; padding: 6px 20px 12px; margin: 0; }
+      .note code, .note kbd { font: 11.5px var(--mono); background: rgba(255,255,255,.07); padding: 0 4px; border-radius: 3px; color: #d7ba7d; }
+      .pad { padding: 4px 20px 12px; display: flex; flex-direction: column; gap: 10px; }
+      .vbtn { display: flex; align-items: center; justify-content: center; gap: 6px; height: 28px; border-radius: 2px; background: var(--btn); color: #fff; padding: 0 12px; }
+      .vbtn:hover { background: var(--btn-h); }
+      .vbtn.sec { background: #3a3d41; } .vbtn.sec:hover { background: #45494e; }
+      .vbtn[disabled] { opacity: .5; cursor: default; }
+      .vbtn svg { width: 14px; height: 14px; }
+      .field { width: 100%; height: 28px; background: #3c3c3c; border: 1px solid #3c3c3c; border-radius: 2px; padding: 0 8px; color: #cccccc; outline: none; }
+      .field:focus { border-color: #007fd4; }
+      select.field { padding: 0 4px; }
+      .lbl { font-size: 12px; color: var(--fg2); margin-bottom: -6px; }
+      .keys { list-style: none; margin: 0; padding: 0 20px 12px; font-size: 12px; color: var(--fg2); }
+      .keys li { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; }
+      .keys kbd { font: 11px var(--ui); color: #cccccc; background: rgba(128,128,128,.17); border: 1px solid rgba(51,51,51,.6); border-bottom-color: rgba(68,68,68,.6); box-shadow: inset 0 -1px 0 rgba(68,68,68,.6); border-radius: 3px; padding: 1px 4px; }
+      .pkgs { list-style: none; margin: 0; padding: 0; }
+      .pkgs li { display: flex; align-items: center; gap: 8px; padding: 6px 20px; }
+      .pkgs li .pn { color: #e7e7e7; }
+      .pkgs li .pd { color: var(--fg2); font-size: 12px; }
+      .pkgs li .pi { width: 32px; height: 32px; flex: 0 0 32px; border-radius: 4px; background: #3c3c3c; display: flex; align-items: center; justify-content: center; font: 11px var(--mono); color: #4ec9b0; }
+
+      .scrim { display: none; }
+
+      /* editor area */
+      .work { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: var(--editor); }
+      .tabbar { flex: 0 0 35px; height: 35px; display: flex; background: var(--tabs); min-width: 0; }
+      .tabs { flex: 1 1 auto; display: flex; overflow-x: auto; overflow-y: hidden; min-width: 0; scrollbar-width: none; }
+      .tabs::-webkit-scrollbar { display: none; }
+      .tab { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; height: 35px; padding: 0 6px 0 10px; background: var(--tabs); color: #969696; border-right: 1px solid #252526; cursor: pointer; position: relative; white-space: nowrap; max-width: 220px; }
+      .tab .nm { overflow: hidden; text-overflow: ellipsis; }
+      .tab.on { background: var(--editor); color: #ffffff; }
+      .tab.on::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: #0078d4; }
+      .tab .runs { color: #89d185; font-size: 9px; margin-left: -2px; }
+      .tab .cx { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: inherit; visibility: hidden; position: relative; }
+      .tab .cx svg { width: 14px; height: 14px; }
+      .tab.on .cx, .tab:hover .cx { visibility: visible; }
+      .tab .cx:hover { background: rgba(90,93,94,.31); }
+      .tab.dirty .cx { visibility: visible; }
+      .tab.dirty .cx svg { display: none; }
+      .tab.dirty .cx::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+      .tab.dirty .cx:hover svg { display: block; }
+      .tab.dirty .cx:hover::after { display: none; }
+      .ed-acts { flex: 0 0 auto; display: flex; align-items: center; gap: 2px; padding: 0 8px; background: var(--tabs); }
+      .ed-acts .ib { width: 28px; height: 28px; }
+      .ed-acts .ib svg { width: 16px; height: 16px; }
+      .ed-acts .run { color: #89d185; }
+      .ed-acts .stop { color: #f48771; }
+      .ed-acts .ib[disabled] { opacity: .35; cursor: default; background: none; }
+      .ed-acts .ib[hidden] { display: none; }
+      .crumbs { flex: 0 0 22px; height: 22px; display: flex; align-items: center; gap: 4px; padding: 0 14px; color: #a9a9a9; font-size: 12px; background: var(--editor); white-space: nowrap; overflow: hidden; }
+      .crumbs .sep { opacity: .6; }
+      .crumbs .d { color: var(--muted); overflow: hidden; text-overflow: ellipsis; margin-left: 6px; font-style: italic; }
+      .edwrap { flex: 1 1 auto; min-height: 60px; position: relative; }
+      #editor { position: absolute; inset: 0; }
+      .watermark { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #6b6b6b; text-align: center; padding: 20px; background: var(--editor); }
+      .watermark.on { display: flex; }
+      .watermark img { width: 110px; opacity: .35; filter: grayscale(1); }
+      .watermark kbd { font: 11px var(--ui); background: rgba(128,128,128,.17); border-radius: 3px; padding: 1px 5px; color: #9d9d9d; }
+
+      /* CodeMirror Dark+ */
+      .CodeMirror { position: absolute; inset: 0; height: auto; font: 14px/19px var(--mono); }
+      .cm-s-dplus.CodeMirror { background: #1e1e1e; color: #d4d4d4; }
+      .cm-s-dplus .CodeMirror-gutters { background: #1e1e1e; border-right: 0; }
+      .cm-s-dplus .CodeMirror-linenumber { color: #858585; padding: 0 16px 0 10px; min-width: 32px; }
+      .cm-s-dplus .CodeMirror-activeline-gutter .CodeMirror-linenumber { color: #c6c6c6; }
+      .cm-s-dplus .CodeMirror-activeline-background { background: transparent; border-top: 1px solid #282828; border-bottom: 1px solid #282828; box-shadow: inset 0 0 0 1px #282828; }
+      .cm-s-dplus .CodeMirror-cursor { border-left: 2px solid #aeafad; }
+      .cm-s-dplus .CodeMirror-selected, .cm-s-dplus.CodeMirror-focused .CodeMirror-selected { background: #264f78; }
+      .cm-s-dplus .CodeMirror-line::selection, .cm-s-dplus .CodeMirror-line > span::selection, .cm-s-dplus .CodeMirror-line > span > span::selection { background: #264f78; }
+      .cm-s-dplus .CodeMirror-matchingbracket { color: inherit !important; outline: 1px solid #888888; background: rgba(0,100,0,.1); }
+      .cm-s-dplus .cm-keyword { color: #569cd6; }
+      .cm-s-dplus .cm-ctrl { color: #c586c0; }
+      .cm-s-dplus .cm-def { color: #dcdcaa; }
+      .cm-s-dplus .cm-variable { color: #9cdcfe; }
+      .cm-s-dplus .cm-variable-2 { color: #569cd6; }
+      .cm-s-dplus .cm-property { color: #9cdcfe; }
+      .cm-s-dplus .cm-builtin { color: #dcdcaa; }
+      .cm-s-dplus .cm-fn { color: #dcdcaa; }
+      .cm-s-dplus .cm-cls { color: #4ec9b0; }
+      .cm-s-dplus .cm-string { color: #ce9178; }
+      .cm-s-dplus .cm-string-2 { color: #ce9178; }
+      .cm-s-dplus .cm-number { color: #b5cea8; }
+      .cm-s-dplus .cm-comment { color: #6a9955; }
+      .cm-s-dplus .cm-operator, .cm-s-dplus .cm-punctuation { color: #d4d4d4; }
+      .cm-s-dplus .cm-meta { color: #dcdcaa; }
+      .cm-s-dplus .cm-atom { color: #569cd6; }
+      .cm-s-dplus .cm-error { color: #f44747; }
+      .cm-s-dplus .err-line { background: rgba(241,76,76,.12); }
+      .CodeMirror-vscrollbar::-webkit-scrollbar, .CodeMirror-hscrollbar::-webkit-scrollbar { width: 10px; height: 10px; }
+      .CodeMirror-vscrollbar::-webkit-scrollbar-thumb, .CodeMirror-hscrollbar::-webkit-scrollbar-thumb, .term::-webkit-scrollbar-thumb, .view::-webkit-scrollbar-thumb { background: rgba(121,121,121,.4); }
+      .term::-webkit-scrollbar, .view::-webkit-scrollbar { width: 10px; }
+
+      /* bottom panel */
+      .sash { flex: 0 0 4px; height: 4px; margin: -2px 0; position: relative; z-index: 5; cursor: ns-resize; touch-action: none; }
+      .sash:hover, .sash.drag { background: #007fd4; }
+      .panel { flex: 0 0 auto; height: var(--ph); min-height: 35px; max-height: calc(100% - 60px); display: flex; flex-direction: column; background: var(--editor); border-top: 1px solid #414141; }
+      .panel.min { height: 35px !important; min-height: 35px; }
+      .panel.min .pbody { display: none; }
+      .phead { flex: 0 0 35px; display: flex; align-items: center; padding: 0 8px 0 10px; gap: 2px; }
+      .ptab { height: 35px; padding: 0 10px; font-size: 11px; letter-spacing: .04em; color: #969696; text-transform: uppercase; position: relative; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+      .ptab:hover { color: #e7e7e7; }
+      .ptab.on { color: #e7e7e7; }
+      .ptab.on::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 5px; height: 1px; background: #e7e7e7; }
+      .ptab .cnt { display: none; min-width: 18px; height: 18px; border-radius: 9px; background: #616161; color: #fff; font-size: 11px; padding: 0 5px; line-height: 18px; text-align: center; letter-spacing: 0; }
+      .ptab .cnt.on { display: inline-block; }
+      .phead .grow { flex: 1; }
+      .pbody { flex: 1 1 auto; min-height: 0; position: relative; }
+      .pview { display: none; position: absolute; inset: 0; }
+      .pview.on { display: block; }
+      .term { height: 100%; overflow: auto; padding: 4px 20px 10px; font: 13px/1.45 var(--mono); color: #cccccc; white-space: pre-wrap; overflow-wrap: anywhere; cursor: text; -webkit-overflow-scrolling: touch; }
+      .term .out { display: inline; }
+      .term .err { color: #f14c4c; } .term .sys { color: #858585; } .term .ok { color: #23d18b; } .term .in { color: #e5e510; }
+      .term .pu { color: #23d18b; } .term .pd { color: #3b8eea; }
+      .inrow { display: none; }
+      .inrow.on { display: inline; }
+      .inrow input { font: 13px/1.45 var(--mono); background: transparent; border: 0; outline: none; color: #e5e510; caret-color: #ffffff; padding: 0; margin: 0; width: 60%; min-width: 120px; vertical-align: baseline; }
+      .inrow.cmd input { color: #cccccc; }
+      .plots img { display: block; max-width: min(100%, 640px); border-radius: 2px; background: #fff; margin: 10px 0; }
+      .log { height: 100%; overflow: auto; margin: 0; padding: 6px 20px; font: 12.5px/1.5 var(--mono); color: #cccccc; white-space: pre-wrap; overflow-wrap: anywhere; }
+      .log .t { color: #858585; } .log .lv { color: #3794ff; } .log .lv.e { color: #f14c4c; }
+      .probs { height: 100%; overflow: auto; list-style: none; margin: 0; padding: 4px 0; }
+      .probs li { display: flex; gap: 8px; align-items: flex-start; padding: 3px 20px; cursor: pointer; line-height: 18px; }
+      .probs li:hover { background: var(--hover); }
+      .probs li svg { width: 16px; height: 16px; flex: 0 0 16px; color: #f14c4c; margin-top: 1px; }
+      .probs .loc { color: var(--muted); margin-left: 6px; }
+      .probs .empty { color: var(--fg2); cursor: default; }
+      .probs .empty:hover { background: none; }
+
+      /* status bar */
+      .statusbar { flex: 0 0 auto; height: 22px; display: flex; align-items: stretch; background: var(--blue); color: #ffffff; font-size: 12px; padding-bottom: env(safe-area-inset-bottom); box-sizing: content-box; }
+      .statusbar .si { display: inline-flex; align-items: center; gap: 4px; padding: 0 8px; white-space: nowrap; flex: 0 0 auto; }
+      .statusbar #stwrap { flex: 0 1 auto; min-width: 0; overflow: hidden; }
+      button.si:hover { background: rgba(255,255,255,.12); }
+      .statusbar .rem { background: #16825d; padding: 0 10px; }
+      .statusbar .grow { flex: 1; min-width: 0; }
+      .statusbar svg { width: 14px; height: 14px; }
+      .statusbar #state { overflow: hidden; text-overflow: ellipsis; min-width: 0; display: inline-block; line-height: 22px; }
+      .spin { animation: spin 1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* ===== phones / small screens ===== */
+      @media (max-width: 760px) {
+        :root { --ph: 40%; }
+        .titlebar { height: 40px; grid-template-columns: auto 1fr; font-size: 13px; }
+        .titlebar .home { height: 40px; }
+        .titlebar .home .full { display: none; }
+        .titlebar .ttl { justify-self: center; max-width: 100%; padding-right: 40px; }
+        .titlebar .menu { display: none; }
+        .sidebar { position: absolute; left: 48px; top: 0; bottom: 0; width: min(300px, calc(100vw - 48px)); box-shadow: 4px 0 16px rgba(0,0,0,.5); transform: translateX(-110%); transition: transform .18s ease; display: flex; }
+        .sidebar.collapsed { display: flex; }
+        .sidebar.open { transform: none; }
+        .scrim { position: absolute; inset: 0 0 0 48px; background: rgba(0,0,0,.35); z-index: 20; }
+        .scrim.on { display: block; }
+        .vhead { height: 44px; }
+        .ib { width: 40px; height: 40px; }
+        .ib svg { width: 18px; height: 18px; }
+        .row { height: 40px; font-size: 14px; }
+        .row .ra { display: flex; }
+        .row .badge { display: none; }
+        .row .ib { width: 40px; height: 40px; }
+        .sect-h { height: 36px; }
+        .desk li a { height: 40px; font-size: 14px; }
+        .vbtn, .field { height: 40px; font-size: 16px; }
+        .keys { display: none; }
+        .tabbar { flex-basis: 40px; height: 40px; }
+        .tab { height: 40px; font-size: 13px; padding: 0 2px 0 10px; }
+        .tab .cx { width: 36px; height: 36px; visibility: visible; }
+        .ed-acts { padding: 0 2px; }
+        .ed-acts .ib { width: 40px; height: 40px; }
+        .ed-acts .ib svg { width: 20px; height: 20px; }
+        .ed-acts .split { display: none; }
+        .crumbs { display: none; }
+        .CodeMirror { font-size: 13px; line-height: 18px; }
+        .cm-s-dplus .CodeMirror-linenumber { padding: 0 8px 0 4px; min-width: 24px; }
+        .sash { flex-basis: 12px; height: 12px; margin: -6px 0; }
+        .sash::after { content: ""; position: absolute; left: 50%; top: 4px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: #5a5a5a; }
+        .panel.min { height: 40px !important; min-height: 40px; }
+        .phead { flex-basis: 40px; padding: 0 2px 0 4px; }
+        .ptab { height: 40px; padding: 0 9px; }
+        .ptab.on::after { left: 9px; right: 9px; bottom: 7px; }
+        .term { padding: 4px 12px 10px; font-size: 13px; }
+        .inrow input { font-size: 16px; }
+        .log, .probs li { padding-left: 12px; padding-right: 12px; }
+        .statusbar { height: 24px; }
+        .statusbar .wide { display: none; }
+        #posbtn { pointer-events: none; }
+        .statusbar .si { padding: 0 6px; }
+      }
+      @media (max-width: 380px) { .statusbar .py { display: none; } }
+    </style>
+  </head>
   <body>
-    <div class="page" id="top">
-      <header class="nav glass"><nav class="seg back-nav" aria-label="Pages"><a href="index.html">← Home</a><a href="models.html">3D Models</a><a href="downloads.html">Downloads</a><a href="run.html" aria-current="page">Run Python</a><a href="contact.html">Send a message</a></nav></header>
-      <main class="main">
-        <section class="section" id="run">
-          <div class="head">
-            <p class="head__eyebrow">Skull Dev Ops</p>
-            <h2>Python IDE</h2>
-            <p class="head__sub">Open one of my projects or write your own. Real Python 3 runs right in your browser, with nothing to install. Your edits save on this device.</p>
-          </div>
-          <div class="ide" id="ide">
-            <div class="ide-top">
-              <label class="sr" for="pick">Project</label>
-              <select id="pick"><option value="Python-Programming/classes.py">classes.py · Story with classes: a short chat that asks you questions.</option><option value="Python-Programming/smoothie.py">smoothie.py · Smoothie Commands: a quirky terminal experience.</option><option value="AppRuntime---Python/github.py">github.py · AppRuntime: a runtime countdown sequence.</option><option value="Data-Analysis---Python/chart.py">chart.py · Data Analysis: a Matplotlib sales chart.</option><option value="scratch">My code · Start from scratch.</option></select>
-              <button class="tb run" id="runbtn" disabled>▶ Run <kbd id="kbd">Ctrl+Enter</kbd></button>
-              <button class="tb stop" id="stopbtn" disabled>■ Stop</button>
-              <span class="spacer"></span>
-              <button class="tb" id="upbtn" title="Open a .py file from your computer">Upload</button>
-              <button class="tb" id="dlbtn" title="Download this file">Download</button>
-              <button class="tb" id="resetbtn" title="Undo all your edits to this project">Reset</button>
-              <input type="file" id="upfile" accept=".py,.txt,.csv,.json" multiple hidden />
+    <div id="app">
+      <header class="titlebar">
+        <a class="home" href="index.html" title="Back to skulldevops.com"><img src="favicon-32x32.png" alt="" /><span>‹ <span class="full">skulldevops.com</span><span class="short"></span></span></a>
+        <div class="ttl" id="ttl">Skull Dev Ops · <b>run.py</b></div>
+        <nav class="menu" aria-label="Site pages"><a href="models.html">3D Models</a><a href="downloads.html">Downloads</a><a href="contact.html">Contact</a></nav>
+      </header>
+      <div class="main">
+        <nav class="activity" aria-label="Views">
+          <button class="ab on" data-view="explorer" title="Explorer (Ctrl+Shift+E)" aria-label="Explorer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M14.5 3H8a1 1 0 0 0-1 1v12.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7.5z"/><path d="M14.5 3v4.5H19"/><path d="M4 7v13a1 1 0 0 0 1 1h10"/></svg></button>
+          <button class="ab" data-view="run" title="Run and Debug (Ctrl+Shift+D)" aria-label="Run"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M6 4.5v15l12.5-7.5z"/></svg></button>
+          <button class="ab" data-view="packages" title="Packages (Ctrl+Shift+X)" aria-label="Packages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3.5 9.5h6v6h-6zM3.5 15.5h6v6h-6zM9.5 15.5h6v6h-6z"/><path d="M17 2.6l4.4 4.4-4.4 4.4-4.4-4.4z"/></svg></button>
+          <span class="grow"></span>
+          <a class="ab" href="index.html" title="Home: skulldevops.com" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.5V20h4.5v-5.5h4V20h4.5V9.5"/></svg></a>
+        </nav>
+
+        <aside class="sidebar" id="sidebar">
+          <!-- EXPLORER -->
+          <section class="view on" id="view-explorer" aria-label="Explorer">
+            <div class="vhead">Explorer
+              <span class="acts">
+                <button class="ib" id="newbtn" title="New File…" aria-label="New file"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M9.5 1.1H3.5a1 1 0 0 0-1 1v11.8a1 1 0 0 0 1 1h4v-1h-4V2.1h5v3.5h3.5V8h1V4.6zm.1 1.4 2 2.1h-2zM12 9v2.5h2.5v1H12V15h-1v-2.5H8.5v-1H11V9z"/></svg></button>
+                <button class="ib" id="upbtn" title="Open .py from your device…" aria-label="Upload file"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2.3 4.2 6.1l.8.8 2.4-2.4V12h1.2V4.5L11 6.9l.8-.8zM3 13.2h10v1.2H3z"/></svg></button>
+                <button class="ib" id="dlbtn" title="Download this file" aria-label="Download file"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 12.2 4.2 8.4l.8-.8 2.4 2.4V2.5h1.2V10L11 7.6l.8.8zM3 13.2h10v1.2H3z"/></svg></button>
+                <button class="ib" id="resetbtn" title="Discard all edits to this project" aria-label="Discard edits"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.3 2.7v3.6h3.6V5.1H5a4.3 4.3 0 1 1-.9 5.1l-1.1.5A5.5 5.5 0 1 0 4.5 4.1V2.7z"/></svg></button>
+              </span>
             </div>
-            <div class="tabs" id="tabs" role="tablist"></div>
-            <div class="panes">
-              <div id="editor"></div>
-              <div class="term-wrap">
-                <div class="term-head"><span class="dot" id="dot"></span><span id="status">Starting Python…</span><span class="spacer"></span><button class="tb" id="clearbtn" style="padding:3px 9px;font-size:12px">Clear</button></div>
-                <pre class="term" id="out" aria-live="polite"></pre>
-                <div class="plots" id="plots"></div>
-                <form class="inrow" id="inrow"><span>›</span><input id="inbox" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Program input" placeholder="Type your answer and press Enter" /><button class="tb" type="button" id="incancel">Cancel</button></form>
+            <div class="sect" id="sect-files">
+              <button class="sect-h" aria-expanded="true"><svg class="chev" viewBox="0 0 16 16" fill="currentColor"><path d="M8 10.7 3.6 6.3l.8-.8L8 9.1l3.6-3.6.8.8z"/></svg>Skull Dev Ops</button>
+              <div class="sect-b"><ul class="tree" id="tree"></ul></div>
+            </div>
+            <div class="sect" id="sect-desk">
+              <button class="sect-h" aria-expanded="true"><svg class="chev" viewBox="0 0 16 16" fill="currentColor"><path d="M8 10.7 3.6 6.3l.8-.8L8 9.1l3.6-3.6.8.8z"/></svg>Desktop apps (Tkinter)</button>
+              <div class="sect-b">
+                <ul class="desk"><li><a class="link" href="downloads/Chess---Python/chess.py" download>chess.py</a></li><li><a class="link" href="downloads/DevCalc---Python/ecalc.py" download>ecalc.py</a></li><li><a class="link" href="downloads/ClockMod---Python/clock.py" download>clock.py</a></li><li><a class="link" href="downloads/Weather---Python/weather.py" download>weather.py</a></li><li><a class="link" href="downloads/BitClicker---Python/clicker.py" download>clicker.py</a></li></ul>
+                <p class="note">These open their own windows, so they run on a computer rather than in the browser. Download one and run it with Python 3.</p>
               </div>
             </div>
-            <div class="ide-foot">
-              <span>Packages:</span>
-              <input id="pipname" placeholder="e.g. numpy, pandas" aria-label="Package to install" />
-              <button class="tb" id="pipbtn" disabled>Install</button>
-              <span class="spacer"></span>
-              <span>Python 3.12 · Pyodide</span>
+          </section>
+
+          <!-- RUN -->
+          <section class="view" id="view-run" aria-label="Run and Debug">
+            <div class="vhead">Run and Debug</div>
+            <div class="pad">
+              <button class="vbtn" id="runbtn2" disabled><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>Run Python File</button>
+              <button class="vbtn sec" id="stopbtn2" disabled><svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 3.5h9v9h-9z"/></svg>Stop</button>
+              <label class="lbl" for="mainsel">File that runs (main)</label>
+              <select class="field" id="mainsel"></select>
+            </div>
+            <p class="note">Real Python 3 runs right in your browser, nothing to install. Your edits save on this device. Files in a project can import each other. When a program calls <code>input()</code>, type your answer in the terminal and press Enter.</p>
+            <ul class="keys">
+              <li><span>Run</span><span><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> or <kbd>F5</kbd></span></li>
+              <li><span>Toggle comment</span><span><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>/</kbd></span></li>
+              <li><span>Toggle panel</span><span><kbd>Ctrl</kbd> + <kbd>`</kbd></span></li>
+              <li><span>Toggle sidebar</span><span><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>B</kbd></span></li>
+              <li><span>Rename file</span><span>double-click</span></li>
+            </ul>
+          </section>
+
+          <!-- PACKAGES -->
+          <section class="view" id="view-packages" aria-label="Packages">
+            <div class="vhead">Packages</div>
+            <div class="pad">
+              <input class="field" id="pipname" placeholder="pip install… e.g. numpy" aria-label="Package to install" autocomplete="off" autocapitalize="off" spellcheck="false" />
+              <button class="vbtn" id="pipbtn" disabled>Install</button>
+            </div>
+            <p class="note">NumPy, pandas and Matplotlib load on their own when you import them. You can also type <code>pip install name</code> in the terminal.</p>
+            <ul class="pkgs" id="pkgs"></ul>
+          </section>
+        </aside>
+        <div class="scrim" id="scrim"></div>
+
+        <section class="work">
+          <div class="tabbar">
+            <div class="tabs" id="tabs" role="tablist"></div>
+            <div class="ed-acts">
+              <button class="ib run" id="runbtn" title="Run Python File (Ctrl+Enter)" aria-label="Run" disabled><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg></button>
+              <button class="ib stop" id="stopbtn" title="Stop" aria-label="Stop" hidden><svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 3.5h9v9h-9z"/></svg></button>
+              <button class="ib split" id="panelbtn" title="Toggle Panel (Ctrl+`)" aria-label="Toggle panel"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5h12v11H2zm1 1v5h10v-5zm0 6v3h10v-3z"/></svg></button>
             </div>
           </div>
-          <p class="fineprint tips"><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> runs · <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>/</kbd> comments a line · the ▶ tab is the file that runs (double-click a tab to rename it or make it the main file). Files can import each other. NumPy, pandas and Matplotlib load on their own when you import them.</p>
-        </section>
-        <section class="section" id="desktop">
-          <div class="head">
-            <p class="head__eyebrow">Desktop apps</p>
-            <h2>Built with Tkinter</h2>
-            <p class="head__sub">These open their own windows, so they run on a computer rather than in the browser. Download one and run it with Python 3.</p>
+          <div class="crumbs" id="crumbs"></div>
+          <div class="edwrap">
+            <div id="editor"></div>
+            <div class="watermark" id="watermark"><img src="skull-dev-ops-logo-transparent.png" alt="" /><div>Open a file from the Explorer<br /><kbd>Ctrl</kbd> + <kbd>Enter</kbd> runs the main file</div></div>
           </div>
-          <ul class="prose"><li><a class="link" href="downloads/Chess---Python/chess.py" download>chess.py</a></li><li><a class="link" href="downloads/DevCalc---Python/ecalc.py" download>ecalc.py</a></li><li><a class="link" href="downloads/ClockMod---Python/clock.py" download>clock.py</a></li><li><a class="link" href="downloads/Weather---Python/weather.py" download>weather.py</a></li><li><a class="link" href="downloads/BitClicker---Python/clicker.py" download>clicker.py</a></li></ul>
+          <div class="sash" id="sash" role="separator" aria-label="Resize panel"></div>
+          <section class="panel" id="panel">
+            <div class="phead" role="tablist">
+              <button class="ptab on" data-p="term">Terminal</button>
+              <button class="ptab" data-p="output">Output</button>
+              <button class="ptab" data-p="problems">Problems <span class="cnt" id="pcount">0</span></button>
+              <span class="grow"></span>
+              <button class="ib" id="clearbtn" title="Clear" aria-label="Clear terminal"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M10 12.6 13.6 9H15l-5 5H5.5L1.6 10.1l7.6-7.6 4.5 4.5-.8.8-3.7-3.7-5.9 5.9 2.7 2.7H9.2z"/></svg></button>
+              <button class="ib" id="minbtn" title="Minimize panel" aria-label="Minimize panel"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 10.7 3.6 6.3l.8-.8L8 9.1l3.6-3.6.8.8z"/></svg></button>
+            </div>
+            <div class="pbody">
+              <div class="pview on" id="p-term"><div class="term" id="term"><div class="out" id="out" aria-live="polite"></div><form class="inrow" id="inrow" autocomplete="off"><span id="prompt"></span><input id="inbox" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" aria-label="Terminal input" /></form><div class="plots" id="plots"></div></div></div>
+              <div class="pview" id="p-output"><pre class="log" id="log"></pre></div>
+              <div class="pview" id="p-problems"><ul class="probs" id="probs"><li class="empty">No problems have been detected in the workspace.</li></ul></div>
+            </div>
+          </section>
         </section>
-      </main>
-      <footer class="foot">
-        <p>Rose Parker · Skull Dev Ops · Los Angeles, CA</p>
-        <nav aria-label="Pages"><a href="index.html">Home</a> · <a href="downloads.html">Downloads</a> · <a href="contact.html">Send a message</a></nav>
+      </div>
+      <footer class="statusbar" id="statusbar">
+        <span class="si rem" title="Running in your browser"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M5.3 4 1.3 8l4 4 .8-.8L2.9 8l3.2-3.2zm5.4 0-.8.8L13.1 8l-3.2 3.2.8.8 4-4z"/></svg></span>
+        <span class="si wide"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M5 2.5a1.5 1.5 0 0 0-.5 2.9v5.2a1.5 1.5 0 1 0 1 0V9.1c.3.2.7.4 1.2.4H9a2 2 0 0 0 2-2V5.4a1.5 1.5 0 1 0-1 0v2.1a1 1 0 0 1-1 1H6.7a1.2 1.2 0 0 1-1.2-1.2V5.4A1.5 1.5 0 0 0 5 2.5z"/></svg>main</span>
+        <span class="si" id="stwrap"><span id="stico"></span><span id="state">Starting Python…</span></span>
+        <span class="grow"></span>
+        <button class="si" id="posbtn" title="Go to Line">Ln 1, Col 1</button>
+        <span class="si wide">Spaces: 4</span>
+        <span class="si wide">UTF-8</span>
+        <span class="si wide">LF</span>
+        <span class="si py">{ } Python 3.12 · Pyodide</span>
       </footer>
     </div>
-    <script src="vendor/codemirror/codemirror.js"></script>
-    <script src="vendor/codemirror/mode/python/python.js"></script>
-    <script src="vendor/codemirror/addon/matchbrackets.js"></script>
-    <script src="vendor/codemirror/addon/closebrackets.js"></script>
-    <script src="vendor/codemirror/addon/active-line.js"></script>
-    <script src="vendor/codemirror/addon/comment.js"></script>
+    <input type="file" id="upfile" accept=".py,.txt,.csv,.json" multiple hidden />
+
+    <script src="vendor/codemirror/codemirror.js?v=7"></script>
+    <script src="vendor/codemirror/mode/python/python.js?v=7"></script>
+    <script src="vendor/codemirror/addon/matchbrackets.js?v=7"></script>
+    <script src="vendor/codemirror/addon/closebrackets.js?v=7"></script>
+    <script src="vendor/codemirror/addon/active-line.js?v=7"></script>
+    <script src="vendor/codemirror/addon/comment.js?v=7"></script>
     <script>
     (() => {
       const SAMPLES = {"Python-Programming/classes.py": {"name": "classes.py", "file": "classes.py", "repo": "Python-Programming", "desc": "Story with classes: a short chat that asks you questions.", "code": "#Welsoome! This is my demoostration of classes in Python! A Short story introducing the user and \n#asking general questions only using functions, classes and variables.\n\n#This is the class of the Person in our story\nclass Person:\n    def __init__(self, name, age, dish):\n        self.name = name\n        self.age = age\n        self.dish = dish\n    #Self, Say hi to the user   \n    def say_hi(self):\n        print(\"Hello! My name is\", self.name)\n        \n     #Self, ask name of the user   \n    def ask_name(self):\n        user_input = input(\"What is your name? >>>\")\n        if user_input == user_input:\n           print(\"Cool name friend!\")\n    \n    #Self, ask favorite dish of the user  \n    def ask_fav(self):\n        user_input = input(\"What is your favorits dish? >>>\")\n        if user_input == user_input:\n            print(\"Yummy! Sounds delicious! Mine is\", p1.dish)       \n     \n    #Self, ask age of the user, but if it's a duplicate of my age then return a different messgae       \n    def ask_age(self):\n        user_input = input(\"How old are you? >>>\")\n        if user_input == \"22\":\n            print(\"Really? I'm\", self.age, \"as well!\")\n        else: \n            user_input == user_input\n            print(\"That's nice! I'm\", self.age)\n            \n    #Self, scold p2 from the conversation with the user\n    def scold(self):\n        user_input = input(\">>>\")\n        if user_input == user_input:\n            print(\"Don't speak to him friend...HEY! Go away Elon!\")\n            \n    #Self, p2 runs away crying, no matter what the user types\n    def cry(self):\n        user_input = input(\">>>\")\n        if user_input == user_input:\n            print(p2.name, \"*Runs away crying*\")\n            \n    #Self, laughs at p2 Running away     \n    def laugh(self):\n        user_input = input(\">>>\")\n        if user_input == user_input:\n            print(\"Ha Ha Ha! I hope that he cries at home!\")\n    \n    #Self, say bye to our new user friend    \n    def say_bye(self):\n        user_input = input(\"Welp, I'm leaving now! You headed home too? >>>\")\n        if user_input == user_input:\n            print(\"Bye friend!\")\n            \n#These are my characters, including me      \np1 = Person(\"Rose Parker\", 22, \"Chinese food\")\np2 = Person(\"Elon Musk\", 53, \"Ketchup\")\np3 = Person(\"Billy Grisham\", 23, \"Spaghetti\")\n\n#This is the story board using classes and functions that were earlier defined for the storyboard\np1.say_hi()\np1.ask_name()\np1.ask_age()\np1.ask_fav()\np2.say_hi()\np1.scold()\np2.cry()\np1.laugh()\np1.say_bye()\n\n        "}, "Python-Programming/smoothie.py": {"name": "smoothie.py", "file": "smoothie.py", "repo": "Python-Programming", "desc": "Smoothie Commands: a quirky terminal experience.", "code": "# This is \"Smoothie Commands\" a weird terminal experience. First I add my names list so users can select their preferred person when they log onto the console\nname_list = [\"Rose, Elon\"]\nname = \"Rose\"\nage = 22\n# I add only 2 users, for example Myself, and Elon Musk, he's not as important as me right now\n# I start with a simple print of the name and age oonce the user logs onto the console and the second print line is a nice Greeting, the name oof the user and verification\nprint (name, age)\nprint (\"Welcome,\", name, \",in order to continue you must type a number below to verify yourself...\")\n# For the verification, I use a simnple equation soo that when a user types any number, that number is multiplied by 12, that number will be our verification code\nnumber = input(\"Type any number to get a generated verification code, you'll have to remember your code for later>>>>\")\ntry:\n    print(\"Your code is:\", 12 * int(number))\n    number = input(\"Enter your code>>>\")\n# I make sure that the user can only attempt to enter a number 2 times before being locked out of the console and they have to restart the process\n# After the number is entered, the number will multiply by 12\nexcept:\n    print(\"That is not a number...\")\n    number = input(\"*1 attempt left*, Enter a number>>>\")\n    print(\"Your code is:\", 12 * int(number))\n    number = input (\"Type your code here, do not share>>>\")\n    # Now if the user didn't enter a number, they will get a warning they'll have too try again later\n    print(\"That is not a number...Try again later\")\n\n# Now if the number was entered correctly, they will continue to the Smoothie console\n\nprint(\"Success!\")\n\n# This is where I add a greeting to the user logged onto the console, Rose or Elon\n\nprint(\"Wecome to ManiText!\")\nprint(\"Today, in this enviorment, we're going to be making a delicious smoothie for the user!\")\n# This displays the name list of all users, the users names are keywoords in oordr to continue\nprint (\"Users - \", name_list)\nprint (\"To exit, enter any key\")\n# I tell them to enter a user's name below, and the game will continue, after the user types the ingridients, the console will ask to blend it\nwhile True:\n    user_input = input(\"Start Typing a name to make a smoothie for that person>>>\")\n    if user_input == \"Elon\":\n        print(\"Let's Begin! Stary by picking a fruit for the smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add 1 more fruit to our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add milk our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"1 Cup - Dairy Milk\")\n        print(\"1 Cup - Oat Milk\")\n        input(\">>>\")\n        print(\"Okay! Now, let's blend our smoothie! It'll take a little while...ok?\")\n        # The user types \"ok\"\n        input(\">>>\")\n        print(\">>>Blend?<<<\")\n        # The user types \"yes\"\n        input(\">>>\")\n        #The console coounts down while the smoothie blends\n        print(\"3...\")\n        print(\"2...\")\n        print(\"1...\")\n        print(\"Done!\")\n        print (\"The smoothie is done! Thanks for playing and enjoy your smoothie!\")\n        #And once the smooothie is complete, the console shuts down\n        break\n        \n        # This is for the second User, same rules and same inputs\n    elif user_input == \"Rose\":\n        print(\"Let's Begin! Stary by picking a fruit for the smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add 1 more fruit to our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"Banana\")\n        print(\"Apple\")\n        print(\"Orange\")\n        print(\"Peach\")\n        print(\"Grapes\")\n        input(\">>>\")\n        print(\"Okay! Now, let's add milk to our smoothie!\")\n        print(\"Pick from list below\")\n        print(\"1 Cup - Dairy Milk\")\n        print(\"1 Cup - Oat Milk\")\n        input(\">>>\")\n        print(\"Okay! Now, let's blend our smoothie! It'll take a little while...ok?\")\n        input(\">>>\")\n        print(\">>>Blend?<<<\")\n        input(\">>>\")\n        print(\"3...\")\n        print(\"2...\")\n        print(\"1...\")\n        print(\"Done!\")\n        print (\"The smoothie is done! Thanks for playing and enjoy your smoothie!\")\n        #And once the smooothie is complete, the console shuts down\n        break\n        \n        #If the user refuses to enters anything but keywords: \"Rose\" or, \"Elon\", the console will ask to shut down\n    else:\n        print (\"Are you sure you want to exit?\")\n        user_input == input(\">>>\")\n        # If the user types yes, Smoothie will shut down\n        if user_input == \"yes\":\n            break\n        \n        print (\"Goodbye\")\n        break\n"}, "AppRuntime---Python/github.py": {"name": "github.py", "file": "github.py", "repo": "AppRuntime---Python", "desc": "AppRuntime: a runtime countdown sequence.", "code": "#Rose Parker - GitHub Link\nimport time\n\nmy_website = \"http://github.com/skulldevops/\"\n\nslice = slice(7, -1)\n\nprint(\"...\")\n\nprint(my_website[slice])\n\nfor seconds in range(3, 0, -1):\n    print(seconds)\n    time.sleep(1)\nprint(\"Continue...\")"}, "Data-Analysis---Python/chart.py": {"name": "chart.py", "file": "chart.py", "repo": "Data-Analysis---Python", "desc": "Data Analysis: a Matplotlib sales chart.", "code": "#Welcome! This is a simple chart usng MatPlotLib. - Rose Parker\n#_____Imports_____\nimport matplotlib.pyplot as plt\n\nplt.title(\"Product Sold\")\nx = [\"Jan\", \"Feb\", \"Mar\", \"Apr\", \"May\", \"Jun\", \"Jul\", \"Aug\", \"Sep\", \"Oct\", \"Nov\", \"Dec\"]\ny = [10,25,50,75,100,150,200, 250, 300, 350, 400, 450]\ncolors = [\"blue\", \"purple\"]\n\n#Plotting the chart\nplt.plot(x,y, color=\"blue\", marker=\"o\")\nplt.fill_between(x, y, color=\"blue\", alpha=0.2)\nplt.grid()\nplt.legend([\"Company Product Sold\"])\nplt.xticks(rotation=45)\nplt.tight_layout()\nplt.savefig(\"chart.png\")\nplt.xlabel(\"Months\")\nplt.ylabel(\"Products Sold\")\nplt.title(\"Products Sold\")\nplt.show()  # Display the chart\n#End of code\n"}, "scratch": {"name": "My code", "file": "main.py", "repo": "", "desc": "Start from scratch.", "code": "print(\"Hello from Skull Dev Ops!\")\nname = input(\"What is your name? \")\nprint(\"Nice to meet you,\", name)\n"}};
-      const KEY = "sdo-ide-v1";
+      const VERSION = "7";
+      const KEY = "sdo-ide-v1", UIKEY = "sdo-ide-ui";
       const $ = id => document.getElementById(id);
-      const pick = $("pick"), out = $("out"), plots = $("plots"), tabsEl = $("tabs");
-      const runbtn = $("runbtn"), stopbtn = $("stopbtn"), pipbtn = $("pipbtn"), statusEl = $("status"), dot = $("dot");
-      const inrow = $("inrow"), inbox = $("inbox");
-      if (/Mac|iPhone|iPad/.test(navigator.platform)) $("kbd").textContent = "⌘↵";
+      const out = $("out"), plots = $("plots"), tabsEl = $("tabs"), term = $("term"), treeEl = $("tree");
+      const runbtn = $("runbtn"), stopbtn = $("stopbtn"), runbtn2 = $("runbtn2"), stopbtn2 = $("stopbtn2"), pipbtn = $("pipbtn");
+      const inrow = $("inrow"), inbox = $("inbox"), promptEl = $("prompt"), statusbar = $("statusbar");
+      const sidebar = $("sidebar"), scrim = $("scrim"), panel = $("panel");
+      const mq = window.matchMedia("(max-width: 760px)");
+      const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+      const PYICON = '<svg class="fi" viewBox="0 0 16 16"><path fill="#3e7ab8" d="M7.9 1C4.5 1 4.7 2.5 4.7 2.5v1.5H8v.5H3.4S1 4.2 1 7.9s2.1 3.5 2.1 3.5h1.2V9.7s-.1-2.1 2-2.1h3.4s2 0 2-1.9V3s.3-2-3.8-2zM6 2.1a.6.6 0 1 1 0 1.2.6.6 0 0 1 0-1.2z"/><path fill="#ffd43b" d="M8.1 15c3.4 0 3.2-1.5 3.2-1.5V12H8v-.5h4.6S15 11.8 15 8.1s-2.1-3.5-2.1-3.5h-1.2v1.7s.1 2.1-2 2.1H6.3s-2 0-2 1.9V13s-.3 2 3.8 2zm1.9-1.1a.6.6 0 1 1 0-1.2.6.6 0 0 1 0 1.2z"/></svg>';
+      const TXTICON = '<svg class="fi" viewBox="0 0 16 16" fill="#9d9d9d"><path d="M3 2h7l3 3v9H3zm1 1v10h8V5.5H9.5V3zM5 7h6v1H5zm0 2h6v1H5zm0 2h4v1H5z"/></svg>';
+      const icon = n => /\.py$/i.test(n) ? PYICON : TXTICON;
+      const X = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="m8 7.3 3.6-3.6.7.7L8.7 8l3.6 3.6-.7.7L8 8.7l-3.6 3.6-.7-.7L7.3 8 3.7 4.4l.7-.7z"/></svg>';
+      const PEN = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.2 1.8a1.9 1.9 0 0 0-2.7 0L2.6 9.7 2 14l4.3-.6 7.9-7.9a1.9 1.9 0 0 0 0-2.7zM5.8 12.4l-2.6.4.4-2.6 6-6 2.2 2.2zm6.9-6.9-2.2-2.2.7-.7a.9.9 0 0 1 1.3 0l.9.9a.9.9 0 0 1 0 1.3z"/></svg>';
+      const TRASH = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M10 3h3v1h-1v9.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4H3V3h3V2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1zM9 2H7v1h2zM5 4v9.5h6V4zm1 1.5h1v6.5H6zm3 0h1v6.5H9z"/></svg>';
+      const ERRI = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm-.6 2.5h1.2v5H7.4zm0 6h1.2v1.2H7.4z"/></svg>';
+      const SPIN = '<svg class="spin" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.5a6.5 6.5 0 1 0 6.5 6.5h-1.2A5.3 5.3 0 1 1 8 2.7z"/></svg>';
+      const CHECK = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.6 4.4 6.5 11.5 2.4 7.4l.8-.8 3.3 3.3 6.3-6.3z"/></svg>';
+      const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+      // ---------- Dark+ token colors on top of the CodeMirror Python mode ----------
+      const CTRL = new Set("if elif else for while break continue return import from as try except finally raise with yield pass await assert del".split(" "));
+      const TYPES = new Set("int float str bool list dict set tuple object type range bytes bytearray complex frozenset Exception BaseException ValueError TypeError KeyError IndexError NameError ZeroDivisionError RuntimeError StopIteration AttributeError ImportError ModuleNotFoundError FileNotFoundError OSError".split(" "));
+      CodeMirror.defineMode("python-dplus", conf => {
+        const base = CodeMirror.getMode(conf, { name: "python", version: 3 });
+        const m = Object.create(base);
+        m.token = (stream, state) => {
+          const start = stream.pos, t = base.token(stream, state);
+          if (!t) return t;
+          const w = stream.current();
+          if (t.indexOf("error") >= 0) { if (/^[A-Za-z_]\w*$/.test(w)) return stream.match(/^\s*\(/, false) ? "fn" : "variable"; return null; }
+          if (t === "keyword" && CTRL.has(w)) return "keyword ctrl";
+          if (t === "def" && /\bclass\s+$/.test(stream.string.slice(0, start))) return "def cls";
+          if (t === "builtin") return TYPES.has(w) ? "builtin cls" : "builtin";
+          if ((t === "variable" || t === "property") && stream.match(/^\s*\(/, false)) return t + (/^[A-Z]/.test(w) ? " cls" : " fn");
+          return t;
+        };
+        return m;
+      });
 
       // ---------- project + file state ----------
       let store; try { store = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { store = {}; }
       store.proj = store.proj || {};
-      const fresh = k => ({ files: [{ name: SAMPLES[k].file, code: SAMPLES[k].code }], active: 0, main: 0 });
-      let cur = SAMPLES[store.current] ? store.current : pick.value;
-      pick.value = cur;
-      const P = () => (store.proj[cur] = store.proj[cur] || fresh(cur));
+      let ui; try { ui = JSON.parse(localStorage.getItem(UIKEY)) || {}; } catch (e) { ui = {}; }
+      const saveUI = () => { try { localStorage.setItem(UIKEY, JSON.stringify(ui)); } catch (e) {} };
+      const KEYS = Object.keys(SAMPLES);
+      const fresh = k => ({ files: [{ name: SAMPLES[k].file, code: SAMPLES[k].code }], active: 0, main: 0, open: [SAMPLES[k].file] });
+      let cur = SAMPLES[store.current] ? store.current : KEYS[0];
+      const P = () => {
+        const p = (store.proj[cur] = store.proj[cur] || fresh(cur));
+        if (!Array.isArray(p.open)) p.open = p.files[p.active] ? [p.files[p.active].name] : [p.files[0].name];
+        p.open = p.open.filter(n => p.files.some(f => f.name === n));
+        if (p.active >= p.files.length) p.active = p.files.length ? 0 : -1;
+        if (p.main >= p.files.length) p.main = 0;
+        return p;
+      };
       const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+      const origOf = (k, f, i) => f.orig !== undefined ? f.orig : (i === 0 && f.name === SAMPLES[k].file ? SAMPLES[k].code : (f.name === SAMPLES[k].file ? SAMPLES[k].code : null));
+      const isDirty = (k, f, i) => { const o = origOf(k, f, i); return o !== null && f.code !== o; };
 
       const cm = CodeMirror($("editor"), {
-        mode: { name: "python", version: 3 }, theme: "sdo", lineNumbers: true, indentUnit: 4, tabSize: 4, indentWithTabs: false,
+        mode: "python-dplus", theme: "dplus", lineNumbers: true, indentUnit: 4, tabSize: 4, indentWithTabs: false,
         matchBrackets: true, autoCloseBrackets: true, styleActiveLine: true, lineWrapping: false, viewportMargin: 40,
         extraKeys: {
           "Tab": c => c.somethingSelected() ? c.indentSelection("add") : c.replaceSelection("    ", "end"),
           "Shift-Tab": c => c.indentSelection("subtract"),
-          "Ctrl-Enter": () => run(), "Cmd-Enter": () => run(),
+          "Ctrl-Enter": () => run(), "Cmd-Enter": () => run(), "F5": () => run(), "Shift-F5": () => stop(),
           "Ctrl-/": "toggleComment", "Cmd-/": "toggleComment",
-          "Ctrl-S": () => { save(); setStatus("Saved on this device.", "ready"); }, "Cmd-S": () => { save(); setStatus("Saved on this device.", "ready"); }
+          "Ctrl-S": () => { save(); setState("Saved on this device", "ready"); }, "Cmd-S": () => { save(); setState("Saved on this device", "ready"); }
         }
       });
-      let swapping = false;
-      cm.on("change", () => { if (swapping) return; P().files[P().active].code = cm.getValue(); save(); });
+      let swapping = false, errMark = null;
+      cm.on("change", () => {
+        if (swapping) return; const p = P(); if (p.active < 0) return;
+        p.files[p.active].code = cm.getValue(); save(); drawTabs(true);
+      });
+      cm.on("cursorActivity", () => { const c = cm.getCursor(); $("posbtn").textContent = "Ln " + (c.line + 1) + ", Col " + (c.ch + 1); });
 
       function showFile(i) {
-        const p = P(); p.active = i; swapping = true; cm.setValue(p.files[i].code); cm.clearHistory(); swapping = false; save(); drawTabs();
+        const p = P(); p.active = i;
+        if (i >= 0) {
+          const f = p.files[i]; if (!p.open.includes(f.name)) p.open.push(f.name);
+          swapping = true; cm.setValue(f.code); cm.clearHistory(); swapping = false;
+          $("watermark").classList.remove("on");
+          setTimeout(() => cm.refresh(), 0);
+        } else $("watermark").classList.add("on");
+        errMark = null; save(); drawAll();
       }
-      function drawTabs() {
-        const p = P(); tabsEl.innerHTML = "";
-        p.files.forEach((f, i) => {
+      function closeTab(name) {
+        const p = P(); const at = p.open.indexOf(name); if (at < 0) return;
+        p.open.splice(at, 1);
+        if (p.active >= 0 && p.files[p.active].name === name) {
+          const next = p.open[Math.min(at, p.open.length - 1)];
+          showFile(next ? p.files.findIndex(f => f.name === next) : -1);
+        } else { save(); drawAll(); }
+      }
+      function renameFile(i) {
+        const p = P(), f = p.files[i];
+        const nn = prompt("Rename file. Add ! at the end to make it the file that runs.", f.name);
+        if (!nn) return; let name = nn.trim(), mk = name.endsWith("!"); if (mk) name = name.slice(0, -1).trim();
+        if (name && name !== f.name) {
+          if (!/\.\w+$/.test(name)) name += ".py";
+          if (p.files.some(o => o.name === name)) return alert("That name is taken.");
+          if (f.orig === undefined) f.orig = origOf(cur, f, i);
+          p.open = p.open.map(n => n === f.name ? name : n); f.name = name;
+        }
+        if (mk) p.main = i; save(); drawAll();
+      }
+      function deleteFile(i) {
+        const p = P(), f = p.files[i]; if (p.files.length < 2) return;
+        if (!confirm("Delete " + f.name + "?")) return;
+        const activeName = p.active >= 0 ? p.files[p.active].name : null;
+        p.files.splice(i, 1); p.open = p.open.filter(n => n !== f.name);
+        if (p.main === i) p.main = 0; else if (p.main > i) p.main--;
+        const na = activeName && activeName !== f.name ? p.files.findIndex(o => o.name === activeName) : (p.open.length ? p.files.findIndex(o => o.name === p.open[0]) : -1);
+        showFile(na);
+      }
+      function newFile() {
+        let name = prompt("New file name", "helpers.py"); if (!name) return; name = name.trim(); if (!name) return;
+        if (!/\.\w+$/.test(name)) name += ".py";
+        if (P().files.some(o => o.name === name)) return alert("That name is taken.");
+        P().files.push({ name, code: "", orig: "" }); showFile(P().files.length - 1); closeSidebarOnPhone(); cm.focus();
+      }
+
+      function drawTabs(onlyDirty) {
+        const p = P();
+        if (onlyDirty) { [...tabsEl.children].forEach(t => { const i = p.files.findIndex(f => f.name === t.dataset.name); if (i >= 0) t.classList.toggle("dirty", isDirty(cur, p.files[i], i)); }); return; }
+        tabsEl.innerHTML = "";
+        p.open.forEach(name => {
+          const i = p.files.findIndex(f => f.name === name); if (i < 0) return; const f = p.files[i];
           const t = document.createElement("div");
-          t.className = "tab" + (i === p.active ? " on" : "") + (i === p.main ? " main" : ""); t.setAttribute("role", "tab");
-          t.title = i === p.main ? "Main file (this one runs)" : "Double-click to rename or make main";
-          const n = document.createElement("span"); n.textContent = f.name; t.appendChild(n);
-          if (p.files.length > 1) { const x = document.createElement("button"); x.className = "x"; x.textContent = "×"; x.title = "Delete file";
-            x.onclick = ev => { ev.stopPropagation(); if (!confirm("Delete " + f.name + "?")) return; p.files.splice(i, 1);
-              if (p.main >= p.files.length || p.main === i) p.main = 0; else if (p.main > i) p.main--; showFile(Math.min(p.active, p.files.length - 1)); };
-            t.appendChild(x); }
+          t.className = "tab" + (i === p.active ? " on" : "") + (isDirty(cur, f, i) ? " dirty" : "");
+          t.dataset.name = f.name; t.setAttribute("role", "tab"); t.setAttribute("aria-selected", i === p.active);
+          t.title = (i === p.main ? "Runs when you press ▶ · " : "") + "Double-click to rename";
+          t.innerHTML = icon(f.name) + '<span class="nm">' + esc(f.name) + "</span>" + (i === p.main && p.files.length > 1 ? '<span class="runs" title="Main file">▶</span>' : "") + '<button class="cx" title="Close" aria-label="Close ' + esc(f.name) + '">' + X + "</button>";
+          t.querySelector(".cx").onclick = ev => { ev.stopPropagation(); closeTab(f.name); };
           t.onclick = () => { if (i !== p.active) showFile(i); };
-          t.ondblclick = () => {
-            const nn = prompt("File name (type the same name to keep it). Add ! at the end to make it the main file.", f.name);
-            if (!nn) return; let name = nn.trim(), mk = name.endsWith("!"); if (mk) name = name.slice(0, -1).trim();
-            if (name && name !== f.name) { if (!/\.\w+$/.test(name)) name += ".py"; if (p.files.some(o => o.name === name)) return alert("That name is taken."); f.name = name; }
-            if (mk) p.main = i; save(); drawTabs();
-          };
+          t.ondblclick = () => renameFile(i);
           tabsEl.appendChild(t);
+          if (i === p.active) setTimeout(() => t.scrollIntoView({ block: "nearest", inline: "nearest" }), 0);
         });
-        const add = document.createElement("div"); add.className = "tab add"; add.textContent = "+ New file";
-        add.onclick = () => { let name = prompt("New file name", "helpers.py"); if (!name) return; name = name.trim(); if (!/\.\w+$/.test(name)) name += ".py";
-          if (P().files.some(o => o.name === name)) return alert("That name is taken."); P().files.push({ name, code: "" }); showFile(P().files.length - 1); cm.focus(); };
-        tabsEl.appendChild(add);
       }
-      function openProject(k) { cur = k; store.current = k; save(); showFile(P().active || 0); out.textContent = ""; plots.innerHTML = ""; }
-      pick.onchange = () => openProject(pick.value);
-      $("resetbtn").onclick = () => { if (!confirm("Undo all your edits to this project?")) return; store.proj[cur] = fresh(cur); save(); showFile(0); };
-      $("dlbtn").onclick = () => { const f = P().files[P().active]; const a = document.createElement("a");
+      function drawTree() {
+        treeEl.innerHTML = "";
+        KEYS.forEach(k => {
+          const s = SAMPLES[k], isCur = k === cur;
+          const p = store.proj[k];
+          const first = p ? p.files[0].name : s.file;
+          const li = document.createElement("li");
+          li.className = "row" + (isCur ? (P().active === 0 ? " act" : " cur") : "");
+          li.title = s.desc; li.style.setProperty("--ind", "20px");
+          li.innerHTML = icon(first) + '<span class="nm">' + esc(first) + "</span>" + (k === "scratch" ? '<span class="desc">blank file</span>' : "") + (isCur ? '<span class="badge">open</span>' : "") + (isCur ? '<span class="ra"><button class="ib" data-a="ren" title="Rename" aria-label="Rename">' + PEN + "</button></span>" : "");
+          li.onclick = ev => {
+            const a = ev.target.closest("[data-a]"); if (a) { ev.stopPropagation(); renameFile(0); return; }
+            if (!isCur) openProject(k); else showFile(0); closeSidebarOnPhone();
+          };
+          li.ondblclick = () => { if (isCur) renameFile(0); };
+          treeEl.appendChild(li);
+          if (isCur) {
+            const pp = P();
+            pp.files.forEach((f, i) => {
+              if (i === 0) return;
+              const r = document.createElement("li");
+              r.className = "row" + (i === pp.active ? " act" : ""); r.style.setProperty("--ind", "38px");
+              r.innerHTML = icon(f.name) + '<span class="nm">' + esc(f.name) + "</span>" + (i === pp.main ? '<span class="badge">main</span>' : "") + '<span class="ra"><button class="ib" data-a="ren" title="Rename" aria-label="Rename">' + PEN + '</button><button class="ib" data-a="del" title="Delete" aria-label="Delete">' + TRASH + "</button></span>";
+              r.onclick = ev => { const a = ev.target.closest("[data-a]"); if (a) { ev.stopPropagation(); a.dataset.a === "del" ? deleteFile(i) : renameFile(i); return; } showFile(i); closeSidebarOnPhone(); };
+              r.ondblclick = () => renameFile(i);
+              treeEl.appendChild(r);
+            });
+            const nf = document.createElement("li"); nf.className = "row newf"; nf.style.setProperty("--ind", "38px");
+            nf.innerHTML = '<svg class="fi" viewBox="0 0 16 16" fill="currentColor"><path d="M7.4 3h1.2v4.4H13v1.2H8.6V13H7.4V8.6H3V7.4h4.4z"/></svg><span class="nm">New file…</span>';
+            nf.onclick = newFile; treeEl.appendChild(nf);
+          }
+        });
+      }
+      function drawChrome() {
+        const p = P(), f = p.active >= 0 ? p.files[p.active] : null, s = SAMPLES[cur];
+        $("ttl").innerHTML = "Skull Dev Ops · <b>" + esc(f ? f.name : "run.py") + "</b>";
+        document.title = (f ? f.name + " · " : "") + "Python IDE · Skull Dev Ops";
+        $("crumbs").innerHTML = f ? '<span>' + esc(s.repo || "my-code") + '</span><span class="sep">›</span>' + icon(f.name) + "<span>" + esc(f.name) + '</span><span class="d">' + esc(s.desc) + "</span>" : "";
+        const ms = $("mainsel"); ms.innerHTML = p.files.map((o, i) => '<option value="' + i + '"' + (i === p.main ? " selected" : "") + ">" + esc(o.name) + "</option>").join("");
+      }
+      function drawAll() { drawTabs(); drawTree(); drawChrome(); }
+      $("mainsel").onchange = e => { P().main = +e.target.value; save(); drawAll(); };
+
+      function openProject(k) { cur = k; store.current = k; save(); const p = P(); showFile(p.active >= 0 ? p.active : (p.open.length ? p.files.findIndex(f => f.name === p.open[0]) : 0)); clearProblems(); }
+      $("newbtn").onclick = newFile;
+      $("resetbtn").onclick = () => { if (!confirm("Discard all your edits to this project?")) return; store.proj[cur] = fresh(cur); save(); showFile(0); };
+      $("dlbtn").onclick = () => { const p = P(); const f = p.files[p.active >= 0 ? p.active : p.main]; const a = document.createElement("a");
         a.href = URL.createObjectURL(new Blob([f.code], { type: "text/x-python" })); a.download = f.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
       $("upbtn").onclick = () => $("upfile").click();
-      $("upfile").onchange = async e => { for (const file of e.target.files) { const code = await file.text(); const p = P(); const at = p.files.findIndex(f => f.name === file.name);
-          if (at >= 0) p.files[at].code = code; else p.files.push({ name: file.name, code }); } e.target.value = ""; showFile(P().files.length - 1); };
-      $("clearbtn").onclick = () => { out.textContent = ""; plots.innerHTML = ""; };
+      $("upfile").onchange = async e => { let last = -1; for (const file of e.target.files) { const code = await file.text(); const p = P(); const at = p.files.findIndex(f => f.name === file.name);
+          if (at >= 0) { p.files[at].code = code; last = at; } else { p.files.push({ name: file.name, code, orig: code }); last = p.files.length - 1; } } e.target.value = ""; if (last >= 0) showFile(last); log("Opened " + e.target.files.length + " file(s) from your device"); };
 
-      // ---------- terminal ----------
-      function write(t, cls) { const atEnd = out.scrollHeight - out.scrollTop - out.clientHeight < 40;
+      // ---------- sidebar / activity bar ----------
+      let view = "explorer";
+      function setView(v, toggle) {
+        const phone = mq.matches;
+        const shown = phone ? sidebar.classList.contains("open") : !sidebar.classList.contains("collapsed");
+        if (toggle && v === view && shown) { hideSidebar(); return; }
+        view = v;
+        document.querySelectorAll(".activity .ab[data-view]").forEach(b => b.classList.toggle("on", b.dataset.view === v));
+        document.querySelectorAll(".view").forEach(s => s.classList.toggle("on", s.id === "view-" + v));
+        if (phone) { sidebar.classList.add("open"); scrim.classList.add("on"); } else { sidebar.classList.remove("collapsed"); ui.side = true; saveUI(); }
+        setTimeout(() => cm.refresh(), 0);
+      }
+      function hideSidebar() {
+        if (mq.matches) { sidebar.classList.remove("open"); scrim.classList.remove("on"); document.querySelectorAll(".activity .ab[data-view]").forEach(b => b.classList.remove("on")); }
+        else { sidebar.classList.add("collapsed"); ui.side = false; saveUI(); document.querySelectorAll(".activity .ab[data-view]").forEach(b => b.classList.remove("on")); }
+        setTimeout(() => cm.refresh(), 0);
+      }
+      function closeSidebarOnPhone() { if (mq.matches) hideSidebar(); }
+      document.querySelectorAll(".activity .ab[data-view]").forEach(b => b.onclick = () => setView(b.dataset.view, true));
+      scrim.onclick = hideSidebar;
+      document.querySelectorAll(".sect-h").forEach(h => h.onclick = () => { const s = h.parentElement; s.classList.toggle("shut"); h.setAttribute("aria-expanded", !s.classList.contains("shut")); });
+      function layoutFor() {
+        if (mq.matches) { sidebar.classList.remove("collapsed"); sidebar.classList.remove("open"); scrim.classList.remove("on"); document.querySelectorAll(".activity .ab[data-view]").forEach(b => b.classList.remove("on")); }
+        else { sidebar.classList.remove("open"); scrim.classList.remove("on"); if (ui.side === false) hideSidebar(); else setView(view); }
+        applyPanelHeight(); setTimeout(() => cm.refresh(), 0);
+      }
+      mq.addEventListener ? mq.addEventListener("change", layoutFor) : mq.addListener(layoutFor);
+
+      // ---------- bottom panel ----------
+      let ptab = "term";
+      function setPanel(n) {
+        ptab = n; panel.classList.remove("min");
+        document.querySelectorAll(".ptab").forEach(b => b.classList.toggle("on", b.dataset.p === n));
+        document.querySelectorAll(".pview").forEach(v => v.classList.toggle("on", v.id === "p-" + n));
+        setTimeout(() => cm.refresh(), 0);
+      }
+      document.querySelectorAll(".ptab").forEach(b => b.onclick = () => setPanel(b.dataset.p));
+      const togglePanel = () => { panel.classList.toggle("min"); ui.min = panel.classList.contains("min"); saveUI(); setTimeout(() => cm.refresh(), 0); };
+      $("minbtn").onclick = togglePanel; $("panelbtn").onclick = togglePanel;
+      function applyPanelHeight() {
+        const key = mq.matches ? "phM" : "phD";
+        panel.style.height = ui[key] ? ui[key] + "px" : "";
+        panel.classList.toggle("min", !!ui.min);
+      }
+      (() => {
+        const sash = $("sash"); let y0, h0, on = false;
+        sash.addEventListener("pointerdown", e => { on = true; y0 = e.clientY; h0 = panel.getBoundingClientRect().height; panel.classList.remove("min"); ui.min = false; sash.classList.add("drag"); sash.setPointerCapture(e.pointerId); e.preventDefault(); });
+        sash.addEventListener("pointermove", e => { if (!on) return; const work = panel.parentElement.getBoundingClientRect().height;
+          const h = Math.max(80, Math.min(work - 120, h0 + (y0 - e.clientY))); panel.style.height = h + "px"; ui[mq.matches ? "phM" : "phD"] = Math.round(h); cm.refresh(); });
+        const end = () => { if (!on) return; on = false; sash.classList.remove("drag"); saveUI(); };
+        sash.addEventListener("pointerup", end); sash.addEventListener("pointercancel", end);
+        sash.addEventListener("dblclick", () => { delete ui.phM; delete ui.phD; saveUI(); applyPanelHeight(); cm.refresh(); });
+      })();
+      document.addEventListener("keydown", e => {
+        if (e.ctrlKey && (e.key === "`" || e.code === "Backquote")) { e.preventDefault(); togglePanel(); }
+        else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "b" || e.key === "B")) { e.preventDefault(); const phone = mq.matches; (phone ? sidebar.classList.contains("open") : !sidebar.classList.contains("collapsed")) ? hideSidebar() : setView(view); }
+        else if ((e.ctrlKey || e.metaKey) && e.shiftKey && /^[EDX]$/i.test(e.key)) { e.preventDefault(); setView({ e: "explorer", d: "run", x: "packages" }[e.key.toLowerCase()]); }
+        else if (e.key === "F5" && !cm.hasFocus()) { e.preventDefault(); e.shiftKey ? stop() : run(); }
+      });
+      $("posbtn").onclick = () => { const p = P(); if (p.active < 0) return; const n = parseInt(prompt("Go to line", cm.getCursor().line + 1), 10); if (n > 0) { cm.setCursor(n - 1, 0); cm.focus(); } };
+
+      // ---------- terminal / output / problems ----------
+      function write(t, cls) {
+        const atEnd = term.scrollHeight - term.scrollTop - term.clientHeight < 60;
         const last = out.lastChild; if (last && last.className === (cls || "") && last.tagName === "SPAN") last.textContent += t;
         else { const s = document.createElement("span"); s.className = cls || ""; s.textContent = t; out.appendChild(s); }
-        if (atEnd) out.scrollTop = out.scrollHeight; }
-      function setStatus(t, state) { statusEl.textContent = t; dot.className = "dot " + (state || ""); }
+        if (atEnd) term.scrollTop = term.scrollHeight;
+      }
+      const endsNL = () => !out.textContent || out.textContent.endsWith("\n");
+      function showCmdPrompt() {
+        if (!endsNL()) write("\n");
+        promptEl.innerHTML = '<span class="pu">rose@skulldevops</span>:<span class="pd">~/project</span>$ ';
+        inrow.className = "inrow on cmd"; inbox.value = ""; inbox.placeholder = "";
+        term.scrollTop = term.scrollHeight;
+      }
+      function hidePrompt() { inrow.className = "inrow"; }
+      function stamp() { const d = new Date(); return d.toTimeString().slice(0, 8); }
+      function log(msg, err) { const l = $("log"); l.insertAdjacentHTML("beforeend", '<span class="t">' + stamp() + '</span> <span class="lv' + (err ? " e" : "") + '">[' + (err ? "error" : "info") + "]</span> " + esc(msg) + "\n"); l.scrollTop = l.scrollHeight; }
+      let state = "busy";
+      function setState(t, st) {
+        state = st || ""; $("state").textContent = t;
+        $("stico").innerHTML = st === "busy" ? SPIN : st === "err" ? ERRI : CHECK;
+      }
+      let errBuf = "", problems = [];
+      function clearProblems() {
+        problems = []; errBuf = ""; drawProblems();
+        if (errMark !== null) { cm.removeLineClass(errMark, "background", "err-line"); errMark = null; }
+      }
+      function drawProblems() {
+        const c = $("pcount"); c.textContent = problems.length; c.classList.toggle("on", problems.length > 0);
+        const ul = $("probs");
+        if (!problems.length) { ul.innerHTML = '<li class="empty">No problems have been detected in the workspace.</li>'; return; }
+        ul.innerHTML = "";
+        problems.forEach(pr => { const li = document.createElement("li"); li.innerHTML = ERRI + "<span>" + esc(pr.msg) + (pr.file ? '<span class="loc">' + esc(pr.file) + " [Ln " + pr.line + "]</span>" : "") + "</span>";
+          li.onclick = () => gotoProblem(pr); ul.appendChild(li); });
+      }
+      function gotoProblem(pr) {
+        const p = P(); const i = p.files.findIndex(f => f.name === pr.file); if (i < 0) return;
+        if (i !== p.active) showFile(i);
+        const ln = Math.max(0, pr.line - 1);
+        if (errMark !== null) cm.removeLineClass(errMark, "background", "err-line");
+        errMark = cm.addLineClass(ln, "background", "err-line");
+        cm.setCursor(ln, 0); cm.scrollIntoView({ line: ln, ch: 0 }, 60); if (!mq.matches) cm.focus();
+      }
+      function parseProblems() {
+        if (!errBuf.trim()) return;
+        const lines = errBuf.trim().split("\n"); const msg = lines[lines.length - 1].trim();
+        const names = P().files.map(f => f.name); let file = null, line = 0;
+        const re = /File "([^"]+)", line (\d+)/g; let m;
+        while ((m = re.exec(errBuf))) { const b = m[1].split("/").pop(); if (names.includes(b)) { file = b; line = +m[2]; } }
+        problems = [{ msg, file, line }]; drawProblems();
+        if (file) { const p = P(); if (p.active >= 0 && p.files[p.active].name === file) { errMark = cm.addLineClass(line - 1, "background", "err-line"); } }
+        log("Run ended with an error: " + msg, true);
+      }
+      $("clearbtn").onclick = () => { if (ptab === "output") { $("log").textContent = ""; return; } out.textContent = ""; plots.innerHTML = ""; if (!running) showCmdPrompt(); };
+      term.addEventListener("click", e => { if (inrow.classList.contains("on") && !window.getSelection().toString() && e.target.tagName !== "IMG") inbox.focus({ preventScroll: true }); });
 
       // ---------- helper service worker (keyboard input + sleep) ----------
       let canInput = false, waitId = null;
       async function setupSW() {
         if (!("serviceWorker" in navigator)) return false;
         try {
-          await navigator.serviceWorker.register("ide-sw.js", { scope: "./" });
+          await navigator.serviceWorker.register("ide-sw.js?v=" + VERSION, { scope: "./" });
           await navigator.serviceWorker.ready;
           if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener("controllerchange", r, { once: true }); setTimeout(r, 3000); });
           return !!navigator.serviceWorker.controller;
         } catch (e) { return false; }
       }
-      const answer = v => { if (waitId && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({ type: "answer", id: waitId, value: v }); waitId = null; inrow.classList.remove("on"); };
+      const answer = v => { if (waitId && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({ type: "answer", id: waitId, value: v }); waitId = null; if (running) hidePrompt(); };
       if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", e => {
-        if (e.data && e.data.type === "input" && running) { waitId = e.data.id; inrow.classList.add("on"); inbox.value = ""; setStatus("Waiting for your input…", "busy");
-          inbox.focus({ preventScroll: true }); inrow.scrollIntoView({ block: "nearest" }); }
+        if (e.data && e.data.type === "input" && running) {
+          waitId = e.data.id; promptEl.textContent = ""; inrow.className = "inrow on"; inbox.value = ""; setState("Waiting for input…", "busy");
+          setPanel("term"); inbox.focus({ preventScroll: true }); term.scrollTop = term.scrollHeight;
+        }
       });
-      inrow.onsubmit = e => { e.preventDefault(); const v = inbox.value; write(v + "\n", "in"); answer(v); setStatus("Running…", "busy"); };
-      $("incancel").onclick = () => answer(null);
+      const hist = []; let hpos = 0;
+      inrow.onsubmit = e => {
+        e.preventDefault(); const v = inbox.value;
+        if (running && waitId) { write(v + "\n", "in"); answer(v); setState("Running…", "busy"); return; }
+        if (running) return;
+        write(promptEl.textContent + v + "\n"); if (v.trim()) { hist.push(v); } hpos = hist.length;
+        command(v.trim());
+      };
+      inbox.addEventListener("keydown", e => {
+        if ((e.ctrlKey && (e.key === "c" || e.key === "C")) || e.key === "Escape") { if (running) { e.preventDefault(); waitId ? (write("^C\n", "err"), answer(null)) : stop(); } }
+        else if (!running && e.key === "ArrowUp" && hist.length) { e.preventDefault(); hpos = Math.max(0, hpos - 1); inbox.value = hist[hpos]; }
+        else if (!running && e.key === "ArrowDown") { e.preventDefault(); hpos = Math.min(hist.length, hpos + 1); inbox.value = hist[hpos] || ""; }
+      });
+      function command(c) {
+        const p = P(); const words = c.split(/\s+/).filter(Boolean);
+        if (!words.length) return showCmdPrompt();
+        const w = words[0];
+        if (w === "clear" || w === "cls") { out.textContent = ""; plots.innerHTML = ""; return showCmdPrompt(); }
+        if (w === "ls" || w === "dir") { write(p.files.map(f => f.name).join("  ") + "\n"); return showCmdPrompt(); }
+        if (w === "help") { write("Commands: python [file.py]  ·  pip install <package>  ·  ls  ·  clear\nPress ▶ (or Ctrl/⌘+Enter) to run the main file. Ctrl+C stops a program.\n", "sys"); return showCmdPrompt(); }
+        if (w === "python" || w === "python3" || w === "py") {
+          if (words[1]) { const i = p.files.findIndex(f => f.name === words[1]); if (i < 0) { write("python: can't open file '" + words[1] + "': No such file\n", "err"); return showCmdPrompt(); } return run(i); }
+          return run();
+        }
+        if ((w === "pip" || w === "pip3") && words[1] === "install" && words[2]) { return pip(words.slice(2).filter(x => !x.startsWith("-")), true); }
+        if (w === "pip" || w === "pip3") { write("usage: pip install <package>\n", "err"); return showCmdPrompt(); }
+        write(w + ": command not found. Type help for the commands this terminal knows.\n", "err"); showCmdPrompt();
+      }
 
       // ---------- python worker ----------
-      let worker, ready = false, running = false;
+      let worker, ready = false, running = false, pipQ = [], pipFromTerm = false;
+      function setRunUI() {
+        runbtn.disabled = runbtn2.disabled = !ready || running;
+        stopbtn.hidden = !running; stopbtn.disabled = stopbtn2.disabled = !running;
+        pipbtn.disabled = !ready || running || pipQ.length > 0;
+      }
       function startWorker() {
-        ready = false; runbtn.disabled = true; pipbtn.disabled = true; setStatus("Starting Python…", "busy");
-        worker = new Worker("ide-worker.js");
+        ready = false; setRunUI(); setState("Starting Python…", "busy"); log("Starting Python 3.12 (Pyodide)…");
+        worker = new Worker("ide-worker.js?v=" + VERSION);
         worker.postMessage({ type: "config", canInput });
         worker.onmessage = e => { const d = e.data;
-          if (d.type === "ready") { ready = true; runbtn.disabled = false; pipbtn.disabled = false; setStatus(canInput ? "Ready" : "Ready (keyboard input unavailable in this browser)", "ready"); }
+          if (d.type === "ready") { ready = true; setRunUI(); setState(canInput ? "Ready" : "Ready (keyboard input unavailable)", "ready"); log("Python ready" + (canInput ? "" : " (keyboard input unavailable in this browser)")); }
           else if (d.type === "out") write(d.text);
-          else if (d.type === "err") write(d.text, "err");
-          else if (d.type === "status") setStatus(d.text, "busy");
-          else if (d.type === "plot") { const i = new Image(); i.alt = "Chart output"; i.src = "data:image/png;base64," + d.data; plots.appendChild(i); }
-          else if (d.type === "pip-done") { pipbtn.disabled = false; write(d.ok ? "Installed " + d.name + "\n" : "Couldn't install " + d.name + ": " + d.text + "\n", d.ok ? "sys" : "err"); setStatus("Ready", "ready"); }
-          else if (d.type === "done") { running = false; answer(null); runbtn.disabled = false; stopbtn.disabled = true; write("\n» Finished in " + (d.ms / 1000).toFixed(2) + " s\n", "sys"); setStatus("Ready", "ready"); }
-          else if (d.type === "fatal") setStatus("Python couldn't load. Check your connection and refresh.", "err");
+          else if (d.type === "err") { write(d.text, "err"); errBuf += d.text; }
+          else if (d.type === "status") { setState(d.text.replace(/…$/, "") + "…", "busy"); log(d.text); }
+          else if (d.type === "plot") { const i = new Image(); i.alt = "Chart output"; i.src = "data:image/png;base64," + d.data; plots.appendChild(i); i.onload = () => { term.scrollTop = term.scrollHeight; }; log("Chart rendered"); }
+          else if (d.type === "pip-done") {
+            write(d.ok ? "Successfully installed " + d.name + "\n" : "ERROR: couldn't install " + d.name + ": " + d.text + "\n", d.ok ? "ok" : "err");
+            log(d.ok ? "Installed " + d.name : "Couldn't install " + d.name, !d.ok);
+            if (d.ok) addPkg(d.name);
+            pipQ.shift(); if (pipQ.length) sendPip(); else { setRunUI(); setState("Ready", "ready"); showCmdPrompt(); }
+          }
+          else if (d.type === "done") { running = false; answer(null); setRunUI(); write("\n» Finished in " + (d.ms / 1000).toFixed(2) + " s\n", "sys"); parseProblems(); setState(problems.length ? "Finished with an error" : "Ready", problems.length ? "err" : "ready"); log("Finished in " + (d.ms / 1000).toFixed(2) + " s"); showCmdPrompt(); }
+          else if (d.type === "fatal") { setState("Python couldn't load. Check your connection and refresh.", "err"); log("Python couldn't load: " + d.text, true); }
         };
-        worker.onerror = () => setStatus("Python couldn't load. Check your connection and refresh.", "err");
+        worker.onerror = () => { setState("Python couldn't load. Check your connection and refresh.", "err"); log("Worker error", true); };
       }
-      function run() {
-        if (!ready || running) return;
-        const p = P(), files = p.files.map(f => ({ name: f.name, code: f.code })), main = files[p.main].name;
+      function run(mainIdx) {
+        if (!ready || running) { if (!ready) { setPanel("term"); write("Python is still starting… try again in a moment.\n", "sys"); } return; }
+        const p = P(); if (typeof mainIdx === "number") { p.main = mainIdx; save(); drawAll(); }
+        const files = p.files.map(f => ({ name: f.name, code: f.code })), main = files[p.main].name;
         const src = files.map(f => f.code).join("\n");
-        if (/^\s*(import|from)\s+(tkinter|pygame|moderngl|turtle)\b/m.test(src)) { write("This program opens a desktop window (tkinter/pygame), so it can't run in the browser. Download it from the Desktop apps list.\n", "err"); return; }
-        out.textContent = ""; plots.innerHTML = "";
-        running = true; runbtn.disabled = true; stopbtn.disabled = false;
-        write("» python " + main + "\n", "sys");
+        setPanel("term"); closeSidebarOnPhone();
+        if (/^\s*(import|from)\s+(tkinter|pygame|moderngl|turtle)\b/m.test(src)) { write("This program opens a desktop window (tkinter/pygame), so it can't run in the browser. Download it from Desktop apps in the Explorer.\n", "err"); showCmdPrompt(); return; }
+        clearProblems(); out.textContent = ""; plots.innerHTML = ""; hidePrompt();
+        running = true; setRunUI();
+        write("rose@skulldevops:~/project$ python " + main + "\n", "sys");
+        setState("Running " + main + "…", "busy"); log("Run: python " + main);
+        if (mq.matches) cm.getInputField().blur();
         worker.postMessage({ type: "run", files, main });
       }
-      runbtn.onclick = run;
-      stopbtn.onclick = () => { if (!running) return; worker.terminate(); answer(null); running = false; stopbtn.disabled = true; write("\n» Stopped\n", "err"); startWorker(); };
-      pipbtn.onclick = () => { const n = $("pipname").value.trim(); if (!n || !ready) return; pipbtn.disabled = true; setStatus("Installing " + n + "…", "busy"); write("» pip install " + n + "\n", "sys"); worker.postMessage({ type: "pip", name: n }); };
+      function stop() { if (!running) return; worker.terminate(); waitId = null; running = false; hidePrompt(); write("\n^C\n» Stopped\n", "err"); log("Stopped by you"); startWorker(); showCmdPrompt(); }
+      [runbtn, runbtn2].forEach(b => b.onclick = () => run());
+      [stopbtn, stopbtn2].forEach(b => b.onclick = stop);
+
+      // ---------- packages ----------
+      const installed = [];
+      function addPkg(n) { if (installed.includes(n)) return; installed.push(n);
+        $("pkgs").insertAdjacentHTML("beforeend", '<li><span class="pi">py</span><span><span class="pn">' + esc(n) + '</span><br /><span class="pd">Installed this session</span></span></li>'); }
+      function sendPip() { const n = pipQ[0]; setState("Installing " + n + "…", "busy"); write("Collecting " + n + "\n", "sys"); log("pip install " + n); worker.postMessage({ type: "pip", name: n }); }
+      function pip(names, fromTerm) {
+        if (!ready || running || !names.length) { if (!ready) write("Python is still starting… try again in a moment.\n", "sys"); if (fromTerm) showCmdPrompt(); return; }
+        if (!fromTerm) { setPanel("term"); write("rose@skulldevops:~/project$ pip install " + names.join(" ") + "\n", "sys"); }
+        hidePrompt(); pipQ = names.slice(); setRunUI(); sendPip();
+      }
+      pipbtn.onclick = () => { const v = $("pipname").value.trim(); if (!v) return; $("pipname").value = ""; closeSidebarOnPhone(); pip(v.split(/[\s,]+/).filter(Boolean), false); };
       $("pipname").onkeydown = e => { if (e.key === "Enter") pipbtn.click(); };
 
+      // ---------- start ----------
+      if (!SAMPLES[store.current]) store.current = cur;
+      layoutFor();
       openProject(cur);
-      setupSW().then(ok => { canInput = ok; startWorker(); });
+      write("Python 3.12 (Pyodide) in your browser. Type help, or press ▶ to run " + P().files[P().main].name + ".\n", "sys");
+      setupSW().then(ok => { canInput = ok; startWorker(); showCmdPrompt(); });
     })();
     </script>
   </body>

@@ -1,5 +1,6 @@
 // Skull Dev Ops IDE helper: lets the Python worker wait for keyboard input and sleep.
 // It only answers requests under /__ide/; everything else goes to the network as usual.
+const VERSION = "7"; // bump with run.html so phones pick up the new IDE
 const waiting = new Map();
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
@@ -22,7 +23,7 @@ self.addEventListener("fetch", e => {
       const value = await new Promise(async res => {
         waiting.set(id, res);
         const all = await self.clients.matchAll({ type: "window" });
-        const target = all.find(c => c.id === client) || all.find(c => new URL(c.url).pathname.endsWith("/run.html"));
+        const target = all.find(c => c.id === client) || all.find(c => /\/run(\.html)?$/.test(new URL(c.url).pathname));
         (target ? [target] : all).forEach(c => c.postMessage({ type: "input", id }));
       });
       return new Response(value === null ? "\u0000CANCEL" : String(value), { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
